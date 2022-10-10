@@ -1,5 +1,7 @@
 from HandTrackingModule import handDetector
-from cv2 import VideoCapture, imread, resize, imshow, waitKey, destroyAllWindows
+from cv2 import VideoCapture, imread, resize, imshow, line, putText, waitKey, destroyAllWindows, FONT_HERSHEY_COMPLEX
+from time import time, sleep
+from math import hypot, acos, degrees
 
 
 detector = handDetector(maxHands=1, detectionCon=0.1)
@@ -19,18 +21,40 @@ camera = VideoCapture(int(input('> ')))
 scalePCam = 70
 scalePWord = 80
 cTime, pTime, = 0, 0
+parentPoint = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19]
 for word in posList:
     imgWord = imread('alphabet/' + word + '.png')
     imgWord = resize(imgWord, (int(imgWord.shape[1] * scalePWord / 100), int(imgWord.shape[0] * scalePWord / 100)))
     detectorWord.getImg(imgWord)
     detectorWord.drawPoints()
     imshow('Word', imgWord)
+    arrPerc = [0] * 21
+    arrPerc[0] = 100
     while True:
         success, img = camera.read()
         img = resize(img, (int(img.shape[1] * scalePCam / 100), int(img.shape[0] * scalePCam / 100)))
         detector.getImg(img)
         pos = detector.getPositions()
-        detector.drawPoints()
+        if len(pos) == 21:
+            for point in range(1, 21):
+                prePoint = parentPoint[point]
+                if arrPerc[prePoint] > 30:
+                    pos1 = [posList[word][prePoint][0], posList[word][prePoint][1]]
+                    pos2 = [posList[word][point][0], posList[word][point][1]]
+                    dwx, dwy = abs(pos1[0]-pos2[0]), abs(pos1[1]-pos2[1])
+                    pos1 = [pos[prePoint][0], pos[prePoint][1]]
+                    pos2 = [pos[point][0], pos[point][1]]
+                    dx, dy = abs(pos1[0]-pos2[0]), abs(pos1[1]-pos2[1])
+                    whyp, hyp = hypot(dwx, dwy), hypot(dx, dy)
+                    if whyp != 0 and hyp != 0: wdeg, deg = degrees(acos(dwx/whyp)), degrees(acos(dx/hyp))
+                    if max(whyp, hyp) != 0: hypPerc = min(whyp, hyp) / max(whyp, hyp)
+                    if max(wdeg, deg) != 0: degPerc = min(wdeg, deg) / max(wdeg, deg)
+                    arrPerc[point] = int((hypPerc + degPerc) / 2 * 100) - (100 - arrPerc[prePoint])
+                    if arrPerc[point] < 0: arrPerc[point] = 0
+                else: arrPerc[point] = 0
+                pos1 = [pos[prePoint][0], pos[prePoint][1]]
+                pos2 = [pos[point][0], pos[point][1]]
+                line(img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), (255*arrPerc[point]//100, 255*arrPerc[point]//100, 255), 3)
         imshow('Camera', img)
         if waitKey(1) & 0xFF == ord("q"): break
 camera.release()
