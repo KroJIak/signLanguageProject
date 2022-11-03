@@ -22,7 +22,7 @@ class handDetector():
         self.imgRGB = cvtColor(self.img, COLOR_BGR2RGB)
         self.results = self.hands.process(self.imgRGB)
 
-    def drawPoints(self, drawAllHand=True, points=[]):
+    def drawPoints(self, drawAllHand=True, points=[], color=(255,255,255)):
         self.getResults()
         if self.results.multi_hand_landmarks:
             if drawAllHand:
@@ -32,8 +32,7 @@ class handDetector():
                         self.prePoint = self.parentPoint[point]
                         pos1 = [self.pos[self.prePoint][0], self.pos[self.prePoint][1]]
                         pos2 = [self.pos[point][0], self.pos[point][1]]
-                        self. k = 4
-                        line(self.img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), (255 - point*self.k, 255 - point*self.k, 255 - point*self.k), 3)
+                        line(self.img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), color, 3)
             if len(points) != 0:
                 for handLms in self.results.multi_hand_landmarks:
                     for num, pos in enumerate(handLms.landmark):
