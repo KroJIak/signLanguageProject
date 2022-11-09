@@ -1,9 +1,7 @@
 from HandTrackingModule import handDetector
-from cv2 import VideoCapture, imread, resize, imshow, line, putText, waitKey, destroyAllWindows, FONT_HERSHEY_COMPLEX
-from time import time, sleep
+from cv2 import VideoCapture, imread, resize, imshow, line, waitKey, destroyAllWindows
+from time import time
 from math import hypot, acos, degrees, sqrt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
-from PyQt5 import QtCore, QtGui, QtWidgets
 detector = handDetector(maxHands=1, detectionCon=0.1)
 detectorWord = handDetector(maxHands=1, detectionCon=0.1)
 
@@ -20,7 +18,6 @@ posList = { 'А': {0: [402, 315], 1: [389, 233], 2: [339, 160], 3: [287, 116], 4
             'И': {0: [326, 415], 1: [377, 390], 2: [404, 318], 3: [399, 263], 4: [369, 235], 5: [357, 257], 6: [358, 195], 7: [365, 189], 8: [372, 198], 9: [323, 254], 10: [314, 185], 11: [323, 184], 12: [332, 195], 13: [288, 261], 14: [277, 183], 15: [271, 129], 16: [266, 85], 17: [255, 279], 18: [249, 220], 19: [247, 179], 20: [246, 142]},
             'Й': {0: [331, 431], 1: [380, 390], 2: [401, 316], 3: [394, 260], 4: [358, 239], 5: [356, 258], 6: [354, 195], 7: [359, 189], 8: [366, 205], 9: [322, 255], 10: [308, 186], 11: [315, 179], 12: [324, 188], 13: [289, 263], 14: [275, 185], 15: [271, 131], 16: [271, 90], 17: [257, 284], 18: [250, 227], 19: [247, 185], 20: [247, 148]},
             'К': {0: [383, 437], 1: [417, 380], 2: [408, 313], 3: [368, 278], 4: [328, 262], 5: [389, 257], 6: [377, 181], 7: [368, 133], 8: [356, 94], 9: [353, 264], 10: [339, 181], 11: [329, 127], 12: [318, 85], 13: [319, 284], 14: [303, 235], 15: [327, 271], 16: [343, 305], 17: [288, 314], 18: [276, 269], 19: [302, 289], 20: [321, 318]},
-            'Л': {0: [319, 181], 1: [370, 215], 2: [405, 267], 3: [422, 312], 4: [430, 340], 5: [375, 248], 6: [377, 302], 7: [374, 347], 8: [368, 384], 9: [339, 234], 10: [317, 297], 11: [297, 336], 12: [278, 365], 13: [308, 217], 14: [280, 270], 15: [258, 281], 16: [241, 297], 17: [282, 203], 18: [261, 235], 19: [252, 237], 20: [243, 245]},
             'Н': {0: [328, 493], 1: [371, 435], 2: [381, 353], 3: [338, 297], 4: [288, 275], 5: [369, 280], 6: [387, 190], 7: [399, 139], 8: [406, 95], 9: [319, 275], 10: [308, 178], 11: [306, 117], 12: [301, 70], 13: [276, 290], 14: [258, 213], 15: [276, 234], 16: [288, 263], 17: [238, 320], 18: [200, 262], 19: [180, 224], 20: [161, 191]},
             'О': {0: [353, 480], 1: [292, 411], 2: [255, 338], 3: [220, 285], 4: [196, 236], 5: [359, 274], 6: [307, 188], 7: [257, 198], 8: [227, 222], 9: [376, 267], 10: [345, 171], 11: [314, 120], 12: [290, 74], 13: [379, 272], 14: [364, 181], 15: [349, 130], 16: [338, 87], 17: [367, 279], 18: [358, 207], 19: [347, 165], 20: [335, 130]},
             'Р': {0: [416, 328], 1: [408, 286], 2: [364, 247], 3: [299, 251], 4: [257, 258], 5: [365, 202], 6: [306, 160], 7: [266, 133], 8: [235, 113], 9: [344, 227], 10: [294, 207], 11: [272, 214], 12: [266, 226], 13: [331, 249], 14: [282, 229], 15: [270, 237], 16: [273, 251], 17: [327, 271], 18: [286, 260], 19: [266, 262], 20: [260, 271]},
@@ -39,50 +36,26 @@ posList = { 'А': {0: [402, 315], 1: [389, 233], 2: [339, 160], 3: [287, 116], 4
             'Ю': {0: [384, 422], 1: [321, 393], 2: [268, 334], 3: [214, 286], 4: [166, 259], 5: [351, 244], 6: [250, 208], 7: [194, 223], 8: [163, 239], 9: [359, 230], 10: [258, 194], 11: [202, 215], 12: [173, 242], 13: [355, 229], 14: [264, 195], 15: [217, 211], 16: [192, 228], 17: [344, 234], 18: [291, 182], 19: [271, 156], 20: [261, 135]},
             'Я': {0: [447, 395], 1: [398, 399], 2: [339, 362], 3: [281, 324], 4: [243, 286], 5: [360, 251], 6: [287, 183], 7: [236, 139], 8: [194, 109], 9: [353, 233], 10: [289, 157], 11: [234, 120], 12: [188, 91], 13: [343, 233], 14: [273, 214], 15: [283, 259], 16: [304, 288], 17: [333, 245], 18: [281, 225], 19: [286, 254], 20: [301, 276]}}
 
-class Ui_Window(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setObjectName("MainWindow")
-        self.resize(750, 450)
-        self.setMinimumSize(QtCore.QSize(750, 450))
-        self.setMaximumSize(QtCore.QSize(750, 450))
-        self.centralwidget = QtWidgets.QWidget(self)
-        self.centralwidget.setObjectName("centralwidget")
-        self.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 750, 24))
-        self.menubar.setObjectName("menubar")
-        self.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName("statusbar")
-        self.setStatusBar(self.statusbar)
-
-        self.retranslateUi()
-        QtCore.QMetaObject.connectSlotsByName(self)
-
-    def retranslateUi(self):
-        _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("MainWindow", "Gestuno"))
-
-    def events(self):
-        self.next.clicked.connect(self.toNext)
-
 def showWord(word):
     imgWord = imread('alphabet/' + word + '.png')
-    imgWord = resize(imgWord, (int(imgWord.shape[1] * scalePWord / 100), int(imgWord.shape[0] * scalePWord / 100)))
     detectorWord.getImg(imgWord)
     detectorWord.drawPoints()
+    imgWord = resize(imgWord, (int(imgWord.shape[1] * scalePWord / 100), int(imgWord.shape[0] * scalePWord / 100)))
     imshow('Word', imgWord)
 
-def showCamera(mode=0):
+def setCamera(mode=0):
     global img
     success, img = camera.read()
-    img = resize(img, (int(img.shape[1] * scalePCam / 100), int(img.shape[0] * scalePCam / 100)))
     detector.getImg(img)
     if mode == 1: detector.drawPoints(color=(0,255,0))
 
-def getPerc(point):
-    global hp, dp
+def showCamera():
+    global img
+    img = resize(img, (int(img.shape[1] * scalePCam / 100), int(img.shape[0] * scalePCam / 100)))
+    imshow('Camera', img)
+
+def getPerc(word, prePoint, point):
+    global arrPerc
     pos1 = [posList[word][prePoint][0], posList[word][prePoint][1]]
     pos2 = [posList[word][point][0], posList[word][point][1]]
     dwx, dwy = pos2[0] - pos1[0], pos1[1] - pos2[1]
@@ -94,40 +67,49 @@ def getPerc(point):
         deg = degrees(acos((dx * dwx + dy * dwy) / (whyp * hyp)))
         hp = min(whyp, hyp) / max(whyp, hyp)
         dp = 1 - deg / 180
-    except: pass
-    return hp, dp
+        return int((sqrt(hp * dp)) * 100) - (100 - arrPerc[prePoint])
+    except:
+        return 0
 
-def drawLines(point):
+
+def drawLines(prePoint, point):
+    global arrPerc
     pos1 = [pos[prePoint][0], pos[prePoint][1]]
     pos2 = [pos[point][0], pos[point][1]]
     line(img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), (255 * arrPerc[point] // 100, 255 * arrPerc[point] // 100, 255), 3)
 
-camera = VideoCapture(1)
-scalePCam = 60
-scalePWord = 80
-inaccuracy = 40
-for word in posList:
-    showWord(word)
-    arrPerc = [0] * 21
-    arrPerc[0] = 100
-    flagSet = set()
-    flagSet.add(-1)
-    bTime = time() + 1
-    while time() < bTime:
-        showCamera()
-        pos = detector.getPositions()
-        if len(pos) == 21:
-            for point in range(1, 21):
-                prePoint = parentPoint[point]
-                hypPerc, degPerc = getPerc(point)
-                arrPerc[point] = int((sqrt(hypPerc * degPerc)) * 100) - (100 - arrPerc[prePoint])
-                if arrPerc[point] < 0: arrPerc[point] = 0
-                if len(flagSet) != 0: drawLines(point)
-            flagSet = set(range(1, inaccuracy)).intersection(set(arrPerc))
-        if len(flagSet) != 0: bTime = time() + 2
-        else: showCamera(mode=1)
-        imshow('Camera', img)
-        if waitKey(1) == 32: break
+def main():
+    global pos, arrPerc
+    for word in posList:
+        showWord(word)
+        arrPerc = [0] * 21
+        arrPerc[0] = 100
+        flagSet = {-1}
+        bTime = time() + 1
+        while time() < bTime:
+            setCamera()
+            pos = detector.getPositions()
+            if len(pos) == 21:
+                for point in range(1, 21):
+                    prePoint = parentPoint[point]
+                    arrPerc[point] = getPerc(word, prePoint, point)
+                    if arrPerc[point] < 0: arrPerc[point] = 0
+                    if len(flagSet) != 0: drawLines(prePoint, point)
+                flagSet = set(range(100-inaccuracy)).intersection(set(arrPerc))
+                if len(flagSet) != 0: bTime = time() + 2
+                else: setCamera(mode=1)
+            else:
+                bTime = time() + 2
+                print('Поднесите кисть ближе к обзору захвата изображения веб-камеры.')
+            showCamera()
+            if waitKey(1) == 32: break
 
-camera.release()
-destroyAllWindows()
+scalePCam = 80
+scalePWord = 70
+inaccuracy = 70
+
+if __name__ == '__main__':
+    camera = VideoCapture(1)
+    main()
+    camera.release()
+    destroyAllWindows()
