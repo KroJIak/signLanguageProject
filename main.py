@@ -1,7 +1,62 @@
-from HandTrackingModule import handDetector
-from cv2 import VideoCapture, imread, resize, imshow, line, waitKey, destroyAllWindows
+from cv2 import VideoCapture, imdecode, resize, imshow, line, waitKey, destroyAllWindows, cvtColor, COLOR_BGR2RGB, circle, FILLED, IMREAD_COLOR
 from time import time
 from math import hypot, acos, degrees, sqrt
+import mediapipe as mp
+import numpy as np
+import sys
+
+class handDetector():
+    def __init__(self, mode=False, maxHands=1, model_complexity=1, detectionCon=0.5, trackCon=0.5):
+        self.mode = mode
+        self.maxHands = maxHands
+        self.model_complexity = model_complexity
+        self.detectionCon = detectionCon
+        self.trackCon = trackCon
+        self.parentPoint = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19]
+        self.mpHands = mp.solutions.hands
+        self.hands = self.mpHands.Hands(self.mode, self.maxHands,
+                                        self.model_complexity, self.detectionCon, self.trackCon)
+        self.mpDraw = mp.solutions.drawing_utils
+
+    def getImg(self, img):
+        self.img = img
+        self.width, self.height = self.img.shape[1], self.img.shape[0]
+
+    def getResults(self):
+        self.imgRGB = cvtColor(self.img, COLOR_BGR2RGB)
+        self.results = self.hands.process(self.imgRGB)
+
+    def drawPoints(self, drawAllHand=True, points=[], color=(255,255,255)):
+        self.getResults()
+        if self.results.multi_hand_landmarks:
+            if drawAllHand:
+                self.pos = self.getPositions()
+                if len(self.pos) == 21:
+                    for point in range(1, 21):
+                        self.prePoint = self.parentPoint[point]
+                        pos1 = [self.pos[self.prePoint][0], self.pos[self.prePoint][1]]
+                        pos2 = [self.pos[point][0], self.pos[point][1]]
+                        line(self.img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), color, 3)
+            if len(points) != 0:
+                for handLms in self.results.multi_hand_landmarks:
+                    for num, pos in enumerate(handLms.landmark):
+                        self.x, self.y = int(pos.x*self.width), int(pos.y*self.height)
+                        if num in points:
+                            circle(self.img, (self.x, self.y), 4, (224, 224, 224), FILLED)
+                            circle(self.img, (self.x, self.y), 3, (237, 70, 47), FILLED)
+
+
+    def getPositions(self, numHand=0):
+        self.posDict = {}
+        self.getResults()
+        if self.results.multi_hand_landmarks:
+            self.hand = self.results.multi_hand_landmarks[numHand]
+            for num, pos in enumerate(self.hand.landmark):
+                self.x, self.y = int(pos.x*self.width), int(pos.y*self.height)
+                if 0 <= self.x < self.width and 0 <= self.y < self.height:
+                    self.posDict[num] = [self.x, self.y]
+        return self.posDict
+
 detector = handDetector(maxHands=1, detectionCon=0.1)
 detectorWord = handDetector(maxHands=1, detectionCon=0.1)
 
@@ -37,7 +92,10 @@ posList = { 'А': {0: [402, 315], 1: [389, 233], 2: [339, 160], 3: [287, 116], 4
             'Я': {0: [447, 395], 1: [398, 399], 2: [339, 362], 3: [281, 324], 4: [243, 286], 5: [360, 251], 6: [287, 183], 7: [236, 139], 8: [194, 109], 9: [353, 233], 10: [289, 157], 11: [234, 120], 12: [188, 91], 13: [343, 233], 14: [273, 214], 15: [283, 259], 16: [304, 288], 17: [333, 245], 18: [281, 225], 19: [286, 254], 20: [301, 276]}}
 
 def showWord(word):
-    imgWord = imread('alphabet/' + word + '.png')
+    f = open('alphabet/'+word+'.png', 'rb')
+    chunk = f.read()
+    chunkArr = np.frombuffer(chunk, dtype=np.uint8)
+    imgWord = imdecode(chunkArr, IMREAD_COLOR)
     detectorWord.getImg(imgWord)
     detectorWord.drawPoints()
     imgWord = resize(imgWord, (int(imgWord.shape[1] * scalePWord / 100), int(imgWord.shape[0] * scalePWord / 100)))
@@ -98,18 +156,38 @@ def main():
                 flagSet = set(range(100-inaccuracy)).intersection(set(arrPerc))
                 if len(flagSet) != 0: bTime = time() + 2
                 else: setCamera(mode=1)
-            else:
-                bTime = time() + 2
-                print('Поднесите кисть ближе к обзору захвата изображения веб-камеры.')
+            else: bTime = time() + 2
             showCamera()
-            if waitKey(1) == 32: break
+            key = waitKey(1)
+            if key == 32: break
+            elif key == 27: sys.exit()
 
-scalePCam = 80
-scalePWord = 70
-inaccuracy = 70
+
+scalePCam = 100
+scalePWord = 100
+inaccuracy = 75
 
 if __name__ == '__main__':
-    camera = VideoCapture(1)
+    num = 0
+    print('Подключение веб-камеры...')
+    while True:
+        print('Попытка подключения к веб-камере под номером ', num, '.', sep='')
+        camera = VideoCapture(num)
+        success, img = camera.read()
+        try:
+            showCamera()
+            break
+        except:
+            print('Ошибка при подкючении, повторная попытка...')
+            num += 1
+    print('Веб-камера успешно подключена!')
+    print()
+    print('--------------ИСТРУКЦИЯ ПО ИСПОЛЬЗОВАНИЮ ПРОГРАММЫ--------------')
+    print('Перед вами демонстрируются 2 окна - эталонных пример и прямая трансляция изображения с вашей веб-камеры.')
+    print('Чтобы перейти к следующему эталонному примеру, повторите данный жест перед своей веб-камерой как можно точнее,')
+    print('либо прибегните к пропуску данного примера через клавишу "пробел".')
+    print('Чтобы выйти из программы, нажмите клавишу "Esc".')
+    print('--------------====================================--------------')
     main()
     camera.release()
     destroyAllWindows()
