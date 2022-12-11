@@ -4,6 +4,7 @@ from math import hypot, acos, degrees, sqrt
 import mediapipe as mp
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 
 class handDetector():
     def __init__(self, mode=False, maxHands=1, model_complexity=1, detectionCon=0.5, trackCon=0.5):
@@ -168,26 +169,7 @@ scalePWord = 100
 inaccuracy = 75
 
 if __name__ == '__main__':
-    num = 0
-    print('Подключение веб-камеры...')
-    while True:
-        print('Попытка подключения к веб-камере под номером ', num, '.', sep='')
-        camera = VideoCapture(num)
-        success, img = camera.read()
-        try:
-            showCamera()
-            break
-        except:
-            print('Ошибка при подкючении, повторная попытка...')
-            num += 1
-    print('Веб-камера успешно подключена!')
-    print()
-    print('--------------ИСТРУКЦИЯ ПО ИСПОЛЬЗОВАНИЮ ПРОГРАММЫ--------------')
-    print('Перед вами демонстрируются 2 окна - эталонных пример и прямая трансляция изображения с вашей веб-камеры.')
-    print('Чтобы перейти к следующему эталонному примеру, повторите данный жест перед своей веб-камерой как можно точнее,')
-    print('либо прибегните к пропуску данного примера через клавишу "пробел".')
-    print('Чтобы выйти из программы, нажмите клавишу "Esc".')
-    print('--------------====================================--------------')
+    camera = VideoCapture(0)
     main()
     camera.release()
     destroyAllWindows()
