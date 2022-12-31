@@ -37,7 +37,7 @@ class handDetector():
                         self.prePoint = self.parentPoint[point]
                         pos1 = [self.pos[self.prePoint][0], self.pos[self.prePoint][1]]
                         pos2 = [self.pos[point][0], self.pos[point][1]]
-                        line(self.img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), color, 3)
+                        line(self.img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), color, 2)
             if len(points) != 0:
                 for handLms in self.results.multi_hand_landmarks:
                     for num, pos in enumerate(handLms.landmark):
@@ -108,6 +108,7 @@ def setCamera(mode=0):
     detector.getImg(img)
     if mode == 1: detector.drawPoints(color=(0,255,0))
 
+
 def showCamera():
     global img
     img = resize(img, (int(img.shape[1] * scalePCam / 100), int(img.shape[0] * scalePCam / 100)))
@@ -130,12 +131,11 @@ def getPerc(word, prePoint, point):
     except:
         return 0
 
-
 def drawLines(prePoint, point):
     global arrPerc
     pos1 = [pos[prePoint][0], pos[prePoint][1]]
     pos2 = [pos[point][0], pos[point][1]]
-    line(img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), (255 * arrPerc[point] // 100, 255 * arrPerc[point] // 100, 255), 3)
+    line(img, (pos1[0], pos1[1]), (pos2[0], pos2[1]), (255 * arrPerc[point] // 100, 255 * arrPerc[point] // 100, 255), 2)
 
 def main():
     global pos, arrPerc
@@ -164,12 +164,12 @@ def main():
             elif key == 27: sys.exit()
 
 
-scalePCam = 100
-scalePWord = 100
-inaccuracy = 75
+scalePCam = 140
+scalePWord = 400
+inaccuracy = 100
 
 if __name__ == '__main__':
-    camera = VideoCapture(0)
+    camera = VideoCapture(1)
     main()
     camera.release()
     destroyAllWindows()
