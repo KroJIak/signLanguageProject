@@ -9,14 +9,13 @@ import matplotlib.pyplot as plt
 class handDetector():
     def __init__(self, mode=False, maxHands=1, model_complexity=1, detectionCon=0.5, trackCon=0.5):
         self.mode = mode
-        self.maxHands = maxHands
+        self.maxHands =maxHands
         self.model_complexity = model_complexity
         self.detectionCon = detectionCon
         self.trackCon = trackCon
         self.parentPoint = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19]
         self.mpHands = mp.solutions.hands
-        self.hands = self.mpHands.Hands(self.mode, self.maxHands,
-                                        self.model_complexity, self.detectionCon, self.trackCon)
+        self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.model_complexity, self.detectionCon, self.trackCon)
         self.mpDraw = mp.solutions.drawing_utils
 
     def getImg(self, img):
@@ -164,12 +163,12 @@ def main():
             elif key == 27: sys.exit()
 
 
-scalePCam = 140
-scalePWord = 400
-inaccuracy = 100
+scalePCam = 100
+scalePWord = 80
+inaccuracy = 60
 
 if __name__ == '__main__':
-    camera = VideoCapture(1)
+    camera = VideoCapture(0)
     main()
     camera.release()
     destroyAllWindows()
