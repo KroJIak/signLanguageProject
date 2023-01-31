@@ -1,7 +1,8 @@
-from cv2 import cvtColor, COLOR_BGR2RGB, line, circle, FILLED, imread
+from cv2 import cvtColor, COLOR_BGR2RGB, line, circle, FILLED, imread, imshow, imdecode, IMREAD_UNCHANGED
 import mediapipe as mp
 import os
 from sqlite3 import connect
+import numpy as np
 
 class handDetector():
     def __init__(self, mode=False, maxHands=1, model_complexity=1, detectionCon=0.5, trackCon=0.5):
@@ -62,7 +63,7 @@ cur = dbConn.cursor()
 print('Calibrating...')
 detector = handDetector(maxHands=1, detectionCon=0.3)
 for word in range(1040, 1072):
-    img = imread('alphabet/' + chr(word) + '.png')
+    img = imdecode(np.fromfile(f'alphabet/{chr(word)}.png', dtype=np.uint8), IMREAD_UNCHANGED)
     detector.setImg(img)
     pos = detector.getPositions()
     if len(pos) == 21:
