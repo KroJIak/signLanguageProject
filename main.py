@@ -182,7 +182,7 @@ def getPercent(pos, arrPerc, prePoint, point):
         deg = degrees(acos((dx * dwx + dy * dwy) / (whyp * hyp)))
         hp = min(whyp, hyp) / max(whyp, hyp)
         dp = 1 - deg / 180
-        percent = int((sqrt(hp * dp)) * 100) - (100 - arrPerc[prePoint])
+        percent = int((sqrt(hp * dp)) * 100) - (100 - arrPerc[prePoint]) * 0.5
         if percent < 0: percent = 0
         return percent
     except: return 0
@@ -219,9 +219,9 @@ if __name__  == '__main__':
     flagSet = {-1}
     cacheWords = {}
 
-    id =0
+    id = 0
     countPorts = 10
-    inaccuracy = 60
+    inaccuracy = 30
     nameNoImage = 'no-image.png'
 
     app = QApplication(argv)
