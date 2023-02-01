@@ -63,16 +63,20 @@ cur = dbConn.cursor()
 print('Calibrating...')
 detector = handDetector(maxHands=1, detectionCon=0.3)
 for word in range(1040, 1072):
-    img = imdecode(np.fromfile(f'alphabet/{chr(word)}.png', dtype=np.uint8), IMREAD_UNCHANGED)
-    detector.setImg(img)
-    pos = detector.getPositions()
-    if len(pos) == 21:
-        cur.execute(f"""CREATE TABLE IF NOT EXISTS {chr(word)}(
-                                            posX INT,
-                                            posY INT);
-                                            """)
-        for id in range(21): cur.execute(f"INSERT INTO {chr(word)} VALUES(?, ?);", (pos[id][0], pos[id][1]))
-    else: unsuccefulWords.append(chr(word))
+    try:
+        img = imdecode(np.fromfile(f'alphabet/{chr(word)}.png', dtype=np.uint8), IMREAD_UNCHANGED)
+        detector.setImg(img)
+        pos = detector.getPositions()
+        if len(pos) == 21:
+            cur.execute(f"""CREATE TABLE IF NOT EXISTS {chr(word)}(
+                                                posX INT,
+                                                posY INT);
+                                                """)
+            for id in range(21): cur.execute(f"INSERT INTO {chr(word)} VALUES(?, ?);", (pos[id][0], pos[id][1]))
+        else: unsuccefulWords.append(chr(word))
+    except:
+        print(f'Error word "{chr(word)}"')
+        unsuccefulWords.append(chr(word))
     print(f'Calibrating...             {int((word-1040) * 100 / 33)}%')
 print('Calibrating...             100%')
 print('Done')
