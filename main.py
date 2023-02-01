@@ -219,7 +219,7 @@ if __name__  == '__main__':
 
     id = 0
     countPorts = 10
-    inaccuracy = 30
+    inaccuracy = 40
     nameNoImage = 'no-image.png'
 
     app = QApplication(argv)
