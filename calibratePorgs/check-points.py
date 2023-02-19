@@ -29,7 +29,7 @@ def main(word):
         elif k == 27: print(mouseX, mouseY)
 
 if __name__  == '__main__':
-    dbConn = connect('dictionary.db')
+    dbConn = connect('../dictionary.db')
     cur = dbConn.cursor()
     cur.execute("""SELECT name FROM sqlite_master WHERE type='table';""")
     words = []

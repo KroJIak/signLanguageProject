@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from sqlite3 import connect
 
 nameWord = 'А'
-dbConn = connect('dictionary.db')
+dbConn = connect('../dictionary.db')
 cur = dbConn.cursor()
 cur.execute(f"""SELECT * FROM {nameWord};""")
 word = cur.fetchall()

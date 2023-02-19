@@ -193,11 +193,13 @@ def drawLines(img, pos, arrPerc, prePoint, point, mode=0):
 
 def outputCamera2Screen(img):
     height, width, channel = img.shape
+    height -= 70
     bytesPerLine = 3 * width
     qImg = QImage(img.data, width, height, bytesPerLine, QImage.Format.Format_RGB888).rgbSwapped()
-    newWidth = min(630, int(630*(max(height, 410)/min(height, 410))))
-    window.imgLabel.setGeometry(QRect((750-newWidth)//2, 20, newWidth, 410))
-    window.imgLabel.setPixmap(QPixmap(qImg).scaled(newWidth, 410))
+    #newWidth = min(630, int(630*(max(height, 410)/min(height, 410))))
+    #window.imgLabel.setGeometry(QRect((750-newWidth)//2, 20, newWidth, 410))
+    window.imgLabel.setGeometry(QRect((750-width)//2, 20, width, 410))
+    window.imgLabel.setPixmap(QPixmap(qImg).scaled(width, 410))
     QApplication.processEvents()
 
 def path2Words(word): return f'alphabet/{word}.png'
@@ -209,6 +211,7 @@ if __name__  == '__main__':
     cur.execute("""SELECT name FROM sqlite_master WHERE type='table';""")
     words = []
     for word in cur.fetchall(): words.append(word[0])
+    print(words)
     dbConn.commit()
     detector = handDetector(detectionCon=0.3)
     parentPoint = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19]
@@ -219,7 +222,7 @@ if __name__  == '__main__':
 
     id = 0
     countPorts = 10
-    inaccuracy = 40
+    inaccuracy = 35
     nameNoImage = 'no-image.png'
 
     app = QApplication(argv)

@@ -56,9 +56,9 @@ class handDetector():
         return self.posDict
 
 unsuccefulWords = []
-try: os.remove('dictionary.db')
+try: os.remove('../dictionary.db')
 except:pass
-dbConn = connect('dictionary.db')
+dbConn = connect('../dictionary.db')
 cur = dbConn.cursor()
 print('Calibrating...')
 detector = handDetector(maxHands=1, detectionCon=0.3)
