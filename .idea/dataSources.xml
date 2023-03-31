@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:C:\Users\Andrey\PycharmProjects\singLanguage\dictionary.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="dictionary [2]" uuid="5e84e32f-b7f3-41c3-a206-2dba204171e7">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:D:\PycharmProjects\singLanguage\dictionary.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

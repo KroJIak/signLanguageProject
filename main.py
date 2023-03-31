@@ -1,4 +1,4 @@
-from cv2 import VideoCapture, cvtColor, COLOR_BGR2RGB, line
+from cv2 import VideoCapture, cvtColor, COLOR_BGR2RGB, line, flip, imread
 from math import hypot, sqrt, degrees, acos
 import mediapipe as mp
 from PyQt6.QtCore import *
@@ -36,6 +36,13 @@ class handDetector():
                 self.x, self.y = int(pos.x*self.width), int(pos.y*self.height)
                 if 0 <= self.x < self.width and 0 <= self.y < self.height: self.posDict[num] = [self.x, self.y]
         return self.posDict
+
+    def getType(self):
+        self.imgRGB = cvtColor(self.img, COLOR_BGR2RGB)
+        self.results = self.hands.process(self.imgRGB)
+        if self.results.multi_hand_landmarks:
+            handType = self.results.multi_handedness
+            return handType[0].classification[0].label
 
 class Window(QMainWindow):
     def __init__(self):
@@ -120,12 +127,17 @@ class Window(QMainWindow):
     def tobNext(self):
         global id
         id = (id + 1) % len(words)
-        self.wordImgLabel.setPixmap(QPixmap(path2Words(words[id])).scaled(170, 170))
+        self.updateImgWord()
 
     def tobPrevious(self):
         global id
         id = id - 1 if id >= 0 else len(words)-1
-        self.wordImgLabel.setPixmap(QPixmap(path2Words(words[id])).scaled(170, 170))
+        self.updateImgWord()
+
+    def updateImgWord(self):
+        if curTypeHand == 'Right': self.qimg = path2Words(words[id])
+        else: self.qimg = path2FlipWords(words[id])
+        self.wordImgLabel.setPixmap(QPixmap(self.qimg).scaled(170, 170))
 
     def showError(self, mode):
         self.error = QMessageBox()
@@ -137,7 +149,7 @@ class Window(QMainWindow):
         self.error.exec()
 
 def enableCamera(path):
-    global camera, flagSet
+    global camera, flagSet, curTypeHand
     camera = VideoCapture(path)
     if not camera.isOpened():
         window.showError(mode=0)
@@ -145,15 +157,20 @@ def enableCamera(path):
     while camera.isOpened():
         try:
             success, img = camera.read()
+            img = flip(img, 1)
             detector.setImg(img)
             pos = detector.getPositions()
             if len(pos) == 21:
+                if detector.getType() != curTypeHand:
+                    curTypeHand = detector.getType()
+                    window.updateImgWord()
                 for point in range(1, 21):
                     arrPerc[point] = getPercent(pos, arrPerc, parentPoint[point], point)
                     if len(flagSet) == 0: mode = 1
                     else: mode = 0
                     drawLines(img, pos, arrPerc, parentPoint[point], point, mode)
-                flagSet = set(range(100 - inaccuracy)).intersection(set(arrPerc))
+                flagSet = [perc for perc in arrPerc if perc < 100-inaccuracy]
+                #flagSet = set(range(100 - inaccuracy)).intersection(set(arrPerc))
                 window.progressBar.setProperty("value", sum(arrPerc[1::])/len(arrPerc[1::]))
             else: window.progressBar.setProperty("value", 0)
             QApplication.processEvents()
@@ -171,6 +188,9 @@ def getPercent(pos, arrPerc, prePoint, point):
     posList = cacheWords[words[id]]
     pos1 = [posList[prePoint][0], posList[prePoint][1]]
     pos2 = [posList[point][0], posList[point][1]]
+    if curTypeHand == 'Right':
+        pos1[0] = lenImgWord - pos1[0]
+        pos2[0] = lenImgWord - pos2[0]
     dwx, dwy = pos2[0] - pos1[0], pos1[1] - pos2[1]
     pos1 = [pos[prePoint][0], pos[prePoint][1]]
     pos2 = [pos[point][0], pos[point][1]]
@@ -180,7 +200,7 @@ def getPercent(pos, arrPerc, prePoint, point):
         deg = degrees(acos((dx * dwx + dy * dwy) / (whyp * hyp)))
         hp = min(whyp, hyp) / max(whyp, hyp)
         dp = 1 - deg / 180
-        percent = int((sqrt(hp * dp)) * 100) - (100 - arrPerc[prePoint]) * 0.5
+        percent = int((sqrt(hp * dp)) * 100) - (100 - arrPerc[prePoint]) * 0.3
         if percent < 0: percent = 0
         return percent
     except: return 0
@@ -204,6 +224,8 @@ def outputCamera2Screen(img):
 
 def path2Words(word): return f'alphabet/{word}.png'
 
+def path2FlipWords(word): return f'flip-alphabet/{word}.png'
+
 if __name__  == '__main__':
     if 'dictionary.db' not in os.listdir(): os.system('python calibration.py')
     dbConn = connect('dictionary.db')
@@ -213,16 +235,18 @@ if __name__  == '__main__':
     for word in cur.fetchall(): words.append(word[0])
     print(words)
     dbConn.commit()
-    detector = handDetector(detectionCon=0.3)
+    detector = handDetector(detectionCon=0.1)
     parentPoint = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19]
     arrPerc = [0] * 21
     arrPerc[0] = 100
     flagSet = {-1}
     cacheWords = {}
+    curTypeHand = None
+    lenImgWord = 480
 
     id = 0
     countPorts = 10
-    inaccuracy = 35
+    inaccuracy = 40
     nameNoImage = 'no-image.png'
 
     app = QApplication(argv)

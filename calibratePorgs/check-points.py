@@ -14,7 +14,7 @@ def main(word):
     cur.execute(f"""SELECT * FROM {word};""")
     posList = cur.fetchall()
     dbConn.commit()
-    f = open('alphabet/' + word + '.png', 'rb')
+    f = open('flip-alphabet/' + word + '.png', 'rb')
     chunk = f.read()
     chunkArr = np.frombuffer(chunk, dtype=np.uint8)
     img = imdecode(chunkArr, IMREAD_COLOR)

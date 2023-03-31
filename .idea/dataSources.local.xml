@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="dataSourceStorageLocal" created-in="PY-222.3345.131">
+  <component name="dataSourceStorageLocal" created-in="PY-221.5921.27">
     <data-source name="dictionary" uuid="366ece86-7568-43bf-91c0-41f56f0d9701">
       <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" exact-version="0" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="dictionary [2]" uuid="5e84e32f-b7f3-41c3-a206-2dba204171e7">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" exact-version="0" />
+      <auth-provider>no-auth</auth-provider>
       <schema-mapping />
     </data-source>
   </component>
