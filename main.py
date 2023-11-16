@@ -33,8 +33,8 @@ class handDetector():
         if self.results.multi_hand_landmarks:
             self.hand = self.results.multi_hand_landmarks[numHand]
             for num, pos in enumerate(self.hand.landmark):
-                self.x, self.y = int(pos.x*self.width), int(pos.y*self.height)
-                if 0 <= self.x < self.width and 0 <= self.y < self.height: self.posDict[num] = [self.x, self.y]
+                self.x, self.y, self.z = int(pos.x*self.width), int(pos.y*self.height), pos.z
+                if 0 <= self.x < self.width and 0 <= self.y < self.height: self.posDict[num] = [self.x, self.y, self.z]
         return self.posDict
 
     def getType(self):
@@ -246,7 +246,7 @@ if __name__  == '__main__':
 
     id = 0
     countPorts = 10
-    inaccuracy = 40
+    inaccuracy = 60
     nameNoImage = 'no-image.png'
 
     app = QApplication(argv)
