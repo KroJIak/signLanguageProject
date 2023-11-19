@@ -5,6 +5,7 @@ import numpy as np
 import multiprocessing
 from copy import copy
 import time
+from ModuleImageWorking import *
 
 PARENT_POINTS = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19]
 FLIP_HAND_DICT = {
@@ -94,21 +95,18 @@ class drawHandWorker():
             resultImg = self.drawLine(resultImg, lmList, PARENT_POINTS[point], point, colorLines[point], thickness)
         return resultImg
 
-    def getDefaultColorLines(self):
-        defaultColorLinesHand = {
-            'Right': [(255, 255, 255)] * 21,
-            'Left': [(255, 255, 255)] * 21
-        }
-        return defaultColorLinesHand
-
     def getColorLinesHand(self, resultHands, lineHandsPercent):
-        colorLinesHand = self.getDefaultColorLines()
+        colorLinesHand = {
+            'Right': [(255, 255, 255, 255)] * 21,
+            'Left': [(255, 255, 255, 255)] * 21
+        }
         for typeHand in resultHands:
             handPercent = lineHandsPercent[typeHand]
             for point in range(1, 21):
                 colorLinesHand[typeHand][point] = (
                 min(round(255 * handPercent[point]), colorLinesHand[typeHand][PARENT_POINTS[point]][0]),
                 min(round(255 * handPercent[point]), colorLinesHand[typeHand][PARENT_POINTS[point]][1]),
+                255,
                 255)
         return colorLinesHand
 
@@ -241,7 +239,8 @@ class globalHandWorker():
                         distancePoints = self.getDistanceBetweenPoints2Dimg(
                             resultHands[typeHand]['lmList'][pointHand],
                             resultFace['lmList'][pointFace])
-                        averageDistancePoints.append(min(1, (needDistance / distancePoints)))
+                        distanceRatio = needDistance / distancePoints if distancePoints > 0 else 1
+                        averageDistancePoints.append(min(1, distanceRatio))
                     distancePercent = sum(averageDistancePoints) / len(averageDistancePoints)
                 else:
                     distancePercent = 0

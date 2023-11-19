@@ -29,18 +29,24 @@ def alphaMergeImage3D(foreground, background, top=0, left=0):
     resultImg[top:top + height, left:left + width, :] = bgPart
     return resultImg
 
-def alphaMergeImage4D(foreground, background, top=0, left=0):
+def alphaMergeImage4D(foreground, background):
     if foreground is None: return background
-    resultImg = background.copy()
-    fgBColor, fgGColor, fgRColor, fgAlpha = cv2.split(foreground)
-    fgAlpha //= 255
-    labelRGB = cv2.merge([fgBColor * fgAlpha, fgGColor * fgAlpha, fgRColor * fgAlpha])
-    height, width, channel = foreground.shape
-    bgPart = resultImg[top:top + height, left:left + width, :]
-    bgBColor, bgGColor, bgRColor = cv2.split(bgPart)
-    bgPart = cv2.merge([bgBColor * (1 - fgAlpha), bgGColor * (1 - fgAlpha), bgRColor * (1 - fgAlpha)])
-    cv2.add(labelRGB, bgPart, bgPart)
-    resultImg[top:top + height, left:left + width, :] = bgPart
+    if len(background[0, 0, :]) < 4:
+        resultImg = addAlphaInImage(background)
+    else:
+        resultImg = background.copy()
+    alphaBackground = resultImg[:, :, 3] / 255.0
+    alphaForeground = foreground[:, :, 3] / 255.0
+    for color in range(0, 3):
+        resultImg[:, :, color] = alphaForeground * foreground[:, :, color] + \
+                                  alphaBackground * resultImg[:, :, color] * (1 - alphaForeground)
+    resultImg[:, :, 3] = (1 - (1 - alphaForeground) * (1 - alphaBackground)) * 255
+    return resultImg
+
+def addAlphaInImage(img):
+    resultImg = getZero4DImage(img.shape)
+    resultImg[:, :, :3] = img.copy()
+    resultImg[:, :, 3] = 255
     return resultImg
 
 def compressImage(img, quality):
@@ -58,7 +64,14 @@ def getZero3DImage(shape):
     zeroImg = np.zeros((height, width, 3), dtype=np.uint8)
     return zeroImg
 
-def drawTextOnImage(img, text, pos, scale, color, thickness):
-    resultImg = img.copy()
+def getZero4DImage(shape):
+    height, width = shape[:2]
+    zeroImg = np.zeros((height, width, 4), dtype=np.uint8)
+    return zeroImg
+
+def get4DImageWithText(shape, text, pos, scale, color, thickness, alpha=255):
+    resultImg = getZero4DImage(shape)
     cv2.putText(resultImg, text, pos, cv2.FONT_HERSHEY_COMPLEX, scale, color, thickness)
+    mask = np.all(resultImg[:, :, :3] == color, axis=-1)
+    resultImg[mask, 3] = alpha
     return resultImg

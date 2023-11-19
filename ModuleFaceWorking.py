@@ -3,6 +3,8 @@ import mediapipe as mp
 import numpy as np
 import multiprocessing
 from copy import copy
+from math import sqrt
+from ModuleImageWorking import *
 
 class faceDetector():
     def __init__(self, mode=False, maxFaces=1, detectionCon=0.5, minTrackCon=0.5):
@@ -39,11 +41,30 @@ class faceDetector():
         return allFaces
 
 class drawFaceWorker():
-    def drawPointsOnImg(self, img, lmList, radius, colorLines, thickness):
+    def drawPointsOnImg(self, img, lmList, radius, colorPoints, thickness):
         resultImg = copy(img)
-        for point in range(len(lmList)):
-            cv2.circle(resultImg, (int(lmList[point]['x']), int(lmList[point]['y'])), radius, colorLines, thickness)
+        for point in colorPoints:
+            cv2.circle(resultImg, (int(lmList[point]['x']), int(lmList[point]['y'])), radius, colorPoints[point], thickness)
         return resultImg
+
+    def getDistanceBetweenPoints(self, point1, point2):
+        vector = {axis: (point1[axis] - point2[axis]) for axis in ['x', 'y', 'z']}
+        lengthVector = sqrt(vector['x'] ** 2 + vector['y'] ** 2 + vector['z'] ** 2)
+        return lengthVector
+
+    def getColorPointsFace(self, needPointsByHand, face, maxCount, maxColor=(0, 150, 0, 255)):
+        if not needPointsByHand or not face: return {}
+        colorPointsFace = {}
+        for point in needPointsByHand:
+            pos1 = face['lmList'][point]
+            lens = {j: self.getDistanceBetweenPoints(pos1, pos2) for j, pos2 in enumerate(face['lmList'])}
+            lens = {k: v for k, v in sorted(lens.items(), key=lambda item: item[1])}
+            count = 0
+            for key in lens:
+                if count == maxCount: break
+                colorPointsFace[key] = np.dot(maxColor, ((maxCount - count) / maxCount))
+                count += 1
+        return colorPointsFace
 
 class globalFaceWorker():
     def __init__(self):
@@ -105,10 +126,17 @@ class globalFaceWorker():
 
         return resultFace
 
+    def getNeedPointsByHand(self, fullGesture):
+        if not fullGesture['useFace']: return None
+        needPointsByHand = [parm[1] for parm in fullGesture['linkedPointsWithFace']]
+        return needPointsByHand
+
 def main():
     cap = cv2.VideoCapture(0)
-    #cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+    cap.set(cv2.CAP_PROP_FPS, 30)
     detector = faceDetector(detectionCon=0.8, maxFaces=1)
     while cv2.waitKey(1) != 27:
         success, img = cap.read()
