@@ -23,17 +23,15 @@ drawFace = drawFaceWorker()
 class outputImageWorker():
     def __init__(self):
         self.layers = {}
+        self.texts = {}
         self.resultHands = {}
         self.resultFace = {}
-        self.countEmptyLayersHands = 0
-        self.countEmptyLayersFace = 0
-        self.filterPowerHands = 1
-        self.filterPowerFace = 1
-        self.colorLinesHand = []
-        self.colorPointsFace = {}
 
-    def setLayer(self, name, img):
-        self.layers[name] = img
+    def setLayer(self, name, img, color):
+        self.layers[name] = {'image': img, 'color': color}
+
+    def setText(self, name, data):
+        self.texts[name] = data
 
     def setColorLinesHand(self, colorLinesHand):
         self.colorLinesHand = colorLinesHand
@@ -43,41 +41,26 @@ class outputImageWorker():
 
     def setLinesFromHands(self, resultHands):
         if resultHands is None: return
-        self.filterPowerHands = handWorker.getFilterPower()
         self.resultHands = resultHands
-        countHandsArr = [len(hands) for hands in handWorker.getHandsOldArray()]
-        self.countEmptyLayersHands = countHandsArr.count(0)
 
     def setLinesFromFace(self, resultFace):
         if resultFace is None: return
-        self.filterPowerFace = faceWorker.getFilterPower()
         self.resultFace = resultFace
-        countFaceArr = [len(face) for face in faceWorker.getFacesOldArray()]
-        self.countEmptyLayersFace = countFaceArr.count(0)
 
     def getResultImg(self, background, linesHandThickness=3, pointsFaceThickness=2, pointFaceRadius=1):
         resultImg = addAlphaInImage(background)
-        if self.resultFace:
-            coefExtinctionFace = 1 - (self.countEmptyLayersHands / self.filterPowerHands)
-            for point in self.colorPointsFace:
-                if point not in self.colorPointsFace: continue
-                self.colorPointsFace[point] = list(self.colorPointsFace[point][:3]) + [self.colorPointsFace[point][3] * coefExtinctionFace]
+        if self.resultFace and self.colorPointsFace:
             zeroImg = getZero4DImage(resultImg.shape)
-            faceImg = drawFace.drawPointsOnImg(zeroImg, self.resultFace['lmList'], pointFaceRadius, self.colorPointsFace,
-                                                  pointsFaceThickness)
-            resultImg = alphaMergeImage4D(faceImg, resultImg)
+            faceImg = drawFace.drawPointsOnImg(zeroImg, self.resultFace['lmList'], pointFaceRadius, self.colorPointsFace, pointsFaceThickness)
+            resultImg = alphaMergeImage4D(resultImg, faceImg)
         if self.resultHands:
-            coefExtinctionHand = 1 - (self.countEmptyLayersHands / self.filterPowerHands)
             for typeHand in self.resultHands:
-                for i, color in enumerate(self.colorLinesHand[typeHand]):
-                    self.colorLinesHand[typeHand][i] = list(color[:3]) + [color[3] * coefExtinctionHand]
-                if typeHand in self.resultHands and typeHand in self.colorLinesHand:
-                    zeroImg = getZero4DImage(resultImg.shape)
-                    handsImg = drawHand.drawLinesOnImgFromPoints(zeroImg, self.resultHands[typeHand]['lmList'], self.colorLinesHand[typeHand], linesHandThickness)
-                    resultImg = alphaMergeImage4D(handsImg, resultImg)
-        for key in self.layers:
-            layer = self.layers[key]
-            resultImg = alphaMergeImage4D(layer, resultImg)
+                if not (typeHand in self.resultHands and typeHand in self.colorLinesHand): continue
+                resultImg = drawHand.drawLinesOnImgFromPoints(resultImg, self.resultHands[typeHand]['lmList'], self.colorLinesHand[typeHand], linesHandThickness)
+        for key, layer in self.layers.items():
+            resultImg = alphaMergeImage3D(resultImg, layer['image'], layer['color'])
+        for key, text in self.texts.items():
+            resultImg = setTextOnImage(resultImg, text)
         return resultImg
 
 class connectGetTrackingObjects():
@@ -162,25 +145,22 @@ def computingFunction():
         fullGesture = db.getStaticGesture(gestureName)
         compressedImg = compressImage(mainImg, 70)
 
-        hands = con.getPositionHands(compressedImg)
-        onlyMainHands = handWorker.getOnlyMainHands(hands)
-        resultHands = handWorker.getResultHands(onlyMainHands, filterPower=1, confidence=0.78)
+        realHands = con.getPositionHands(compressedImg)
+        resultHands = handWorker.getResultHands(realHands)
         resultFace = {}
-
         if resultHands:
-            faces = con.getPositionFaces(compressedImg)
-            onlyOneFace = faceWorker.getOnlyOneFace(faces)
-            resultFace = faceWorker.getResultFace(onlyOneFace, filterPower=1)
+            realFaces = con.getPositionFaces(compressedImg)
+            resultFace = faceWorker.getResultFace(realFaces)
             needFacePointsByHand = faceWorker.getNeedPointsByHand(fullGesture)
 
             lineHandsPercent = handWorker.getLineHandsPercent(resultHands, fullGesture, resultFace)
             colorLinesHand = drawHand.getColorLinesHand(resultHands, lineHandsPercent)
-            colorPointsFace = drawFace.getColorPointsFace(needFacePointsByHand, resultFace, 60)
+            colorPointsFace = drawFace.getColorPointsFace(needFacePointsByHand, resultFace, [170, 80, 70, 255], 70)
             outputWorker.setColorLinesHand(colorLinesHand)
             outputWorker.setColorPointsFace(colorPointsFace)
 
-        nameGestureImg = get4DImageWithText(mainImg.shape, gestureName, (70, 650), 2, (0, 40, 240), 3, alpha=240)
-        outputWorker.setLayer('nameGesture', nameGestureImg)
+        textData = dict(string=gestureName, pos=(70, 650), scale=2, color=(0, 40, 240), thickness=3)
+        outputWorker.setText('nameGesture', textData)
         outputWorker.setLinesFromHands(resultHands)
         outputWorker.setLinesFromFace(resultFace)
 

@@ -97,105 +97,25 @@ class drawHandWorker():
 
     def getColorLinesHand(self, resultHands, lineHandsPercent):
         colorLinesHand = {
-            'Right': [(255, 255, 255, 255)] * 21,
-            'Left': [(255, 255, 255, 255)] * 21
+            'Right': [[255, 255, 255, 255]] * 21,
+            'Left': [[255, 255, 255, 255]] * 21
         }
         for typeHand in resultHands:
             handPercent = lineHandsPercent[typeHand]
             for point in range(1, 21):
-                colorLinesHand[typeHand][point] = (
+                colorLinesHand[typeHand][point] = [
                 min(round(255 * handPercent[point]), colorLinesHand[typeHand][PARENT_POINTS[point]][0]),
                 min(round(255 * handPercent[point]), colorLinesHand[typeHand][PARENT_POINTS[point]][1]),
                 255,
-                255)
+                255]
         return colorLinesHand
 
 
 class globalHandWorker():
-    def __init__(self):
-        self.handsOldArr = []
-        self.filterPower = 0
-
-    def getOnlyMainHands(self, hands):
-        if hands is None: return None
-        newHands = {}
-        for hand in hands:
-            newHands[hand['type']] = {
-                'lmList': hand['lmList'],
-                'score': hand['score']
-            }
-        return newHands
-
-    def onlyMainHands2LmList(self, hands):
-        lmList = [hands[typeHand]['lmList'] for typeHand in hands]
-        return lmList
-
-    def getHandsOldArray(self):
-        return self.handsOldArr
-
-    def getFilterPower(self):
-        return self.filterPower
-
-    def getZeroLineHandPercent(self):
-        return {'Right': [1] + [0] * 20, 'Left': [1] + [0] * 20}
-
-    def getResultHands(self, hands, filterPower, confidence):
-        if hands is None: return None
-        self.filterPower = filterPower
-        self.handsOldArr.append(hands)
-        resultHands = self.filteringlmListByAverageValue(hands, confidence,
-                                                        self.filterPower, self.handsOldArr)
-        self.handsOldArr = self.handsOldArr[::-1]
-        self.handsOldArr = self.handsOldArr[:filterPower]
-        self.handsOldArr = self.handsOldArr[::-1]
-        return resultHands
-
-    def filteringlmListByAverageValue(self, realHands, confidence, filterPower=0, handsOldArr=[]):
-        if len(handsOldArr) <= filterPower: return realHands
-
-        resultHands = {}
-        countHands = dict(Right=0, Left=0)
-        for hands in handsOldArr:
-            for typeHand in hands:
-                if hands[typeHand]['score'] < confidence: continue
-                countHands[typeHand] = countHands[typeHand] + 1
-                if typeHand not in resultHands:
-                    resultHands[typeHand] = {
-                        'lmList': hands[typeHand]['lmList'],
-                        'score': hands[typeHand]['score']
-                    }
-                else:
-                    lmListHand = hands[typeHand]['lmList']
-                    for posId in range(len(lmListHand)):
-                        curX = resultHands[typeHand]['lmList'][posId]['x']
-                        curY = resultHands[typeHand]['lmList'][posId]['y']
-                        curZ = resultHands[typeHand]['lmList'][posId]['z']
-                        resultHands[typeHand]['lmList'][posId]['x'] = curX + lmListHand[posId]['x']
-                        resultHands[typeHand]['lmList'][posId]['y'] = curY + lmListHand[posId]['y']
-                        resultHands[typeHand]['lmList'][posId]['z'] = curZ + lmListHand[posId]['z']
-                    scoreHand = hands[typeHand]['score']
-                    curScoreHand = resultHands[typeHand]['score']
-                    resultHands[typeHand]['score'] = curScoreHand + scoreHand
-
-        popHand = dict(Right=False, Left=False)
-        for typeHand in resultHands:
-            countCurTypeHand = countHands[typeHand]
-            lmListResultHand = resultHands[typeHand]['lmList']
-            if filterPower - countCurTypeHand > min(3, filterPower):
-                popHand[typeHand] = True
-                continue
-            for posId in range(len(lmListResultHand)):
-                curX = lmListResultHand[posId]['x']
-                curY = lmListResultHand[posId]['y']
-                curZ = lmListResultHand[posId]['z']
-                resultHands[typeHand]['lmList'][posId]['x'] = curX // countCurTypeHand
-                resultHands[typeHand]['lmList'][posId]['y'] = curY // countCurTypeHand
-                resultHands[typeHand]['lmList'][posId]['z'] = curZ // countCurTypeHand
-            scoreResultHand = resultHands[typeHand]['score']
-            resultHands[typeHand]['score'] = scoreResultHand / countCurTypeHand
-        for typeHand in popHand:
-            if popHand[typeHand]:
-                resultHands.pop(typeHand)
+    def getResultHands(self, realHands):
+        if not realHands: return []
+        resultHands = {hand['type']: {'lmList': hand['lmList'],
+                                   'score': hand['score']} for hand in realHands}
         return resultHands
 
     def getAngleBetweenLines(self, line1, line2):
@@ -224,7 +144,7 @@ class globalHandWorker():
 
     def getLineHandsPercent(self, resultHands, fullGesture, resultFace=None):
         fullHands = fullGesture['hands']
-        lineHandsPercent = self.getZeroLineHandPercent()
+        lineHandsPercent = {'Right': [1] + [0] * 20, 'Left': [1] + [0] * 20}
         for typeHand in fullHands:
             if typeHand not in resultHands: continue
             lmListRealHand = resultHands[typeHand]['lmList']
