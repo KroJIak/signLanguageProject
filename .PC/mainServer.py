@@ -1,10 +1,9 @@
-from ModuleImageWorking import decodeImage
-from ModuleHandWorking import handDetector, globalHandWorker
-from ModuleFaceWorking import faceDetector, globalFaceWorker
+from PC.modules.handWorking import handDetector, globalHandWorker
+from PC.modules.faceWorking import faceDetector, globalFaceWorker
+from PC.modules.imageWorking import decodeImage
 from fastapi import FastAPI, Request
 from traceback import format_exc
 import uvicorn
-import numpy as np
 
 detHands = handDetector(detectionCon=0.6, minTrackCon=0.6, maxHands=2)
 detFaces = faceDetector(detectionCon=0.6, minTrackCon=0.6, maxFaces=1)
@@ -44,7 +43,7 @@ async def getGestureByImage(request: Request):
         return f'[ERROR]: {format_exc()}'
 
 if __name__ == '__main__':
-    uvicorn.run('mainServer:app', host='0.0.0.0', port=8080, reload=True, log_level='info', workers=5)
+    uvicorn.run('mainServer:app', host='localhost', port=8080, reload=True, log_level='info', workers=10)
 
 # Заметки
 # - jpg отправляется быстрее

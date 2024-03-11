@@ -1,8 +1,5 @@
-from ModuleCorrectPath import getCorrectPathByPyScript
 import json
 import os
-
-MAIN_PATH = getCorrectPathByPyScript(__file__)
 
 class dbWorker:
 	def __init__(self, databaseFilePath):
@@ -71,7 +68,7 @@ class dbWorker:
 			}
 
 def main():
-	db = dbWorker(f'{MAIN_PATH}/database.json')
+	db = dbWorker(f'../gestures/database.json')
 	print(db.get())
 
 if __name__ == '__main__':

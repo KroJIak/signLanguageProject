@@ -1,7 +1,5 @@
-from ModuleImageWorking import decodeImage, encodeImage
-import requests
+from PC.modules.imageWorking import decodeImage, encodeImage
 import cv2
-import numpy as np
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)

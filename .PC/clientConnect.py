@@ -1,20 +1,17 @@
-from ModuleHandWorking import globalHandWorker, drawHandWorker
-from ModuleFaceWorking import globalFaceWorker, drawFaceWorker
-from ModuleCorrectPath import getCorrectPathByPyScript
-from ModuleImageWorking import *
+from PC.modules.handWorking import globalHandWorker, drawHandWorker
+from PC.modules.faceWorking import globalFaceWorker, drawFaceWorker
+from db.modules.database import dbWorker
+from PC.modules.imageWorking import *
 from traceback import format_exc
-from database import dbWorker
 from threading import Thread
 from time import sleep
 import numpy as np
 import requests
 import json
 import cv2
-import time
 
-MAIN_PATH = getCorrectPathByPyScript(__file__)
 PATH2DB = 'gestures/database.json'
-db = dbWorker(f'{MAIN_PATH}/{PATH2DB}')
+db = dbWorker(PATH2DB)
 handWorker = globalHandWorker()
 faceWorker = globalFaceWorker()
 drawHand = drawHandWorker()
@@ -111,13 +108,16 @@ def showCamera():
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
-    cap.set(cv2.CAP_PROP_FPS, 30)
+    cap.set(cv2.CAP_PROP_FPS, 60)
+    cap.set(28, 0)
     try:
         while run:
             success, mainFlipImg = cap.read()
             mainImg = cv2.flip(mainFlipImg, 2)
             if success:
                 resultImg = outputWorker.getResultImg(mainImg)
+                coef = 1
+                resultImg = cv2.resize(resultImg, (int(resultImg.shape[1] * coef), int(resultImg.shape[0] * coef)))
                 cv2.imshow('Camera', resultImg)
             match cv2.waitKey(1):
                 case 27: run = False

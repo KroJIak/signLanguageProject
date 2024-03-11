@@ -1,10 +1,9 @@
-import cv2
-import mediapipe as mp
-import numpy as np
 import multiprocessing
+import mediapipe as mp
 from copy import copy
 from math import sqrt
-from ModuleImageWorking import *
+import numpy as np
+import cv2
 
 class faceDetector():
     def __init__(self, mode=False, maxFaces=1, detectionCon=0.5, minTrackCon=0.5):

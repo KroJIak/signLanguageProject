@@ -1,12 +1,10 @@
-from ModuleHandWorking import handDetector, globalHandWorker, drawHandWorker
-from ModuleCorrectPath import getCorrectPathByPyScript
-from database import dbWorker
+from PC.modules.handWorking import handDetector, globalHandWorker, drawHandWorker
+from db.modules.database import dbWorker
 import os
 import cv2
 
-MAIN_PATH = getCorrectPathByPyScript(__file__)
 PATH2DB = 'gestures/database.json'
-db = dbWorker(f'{MAIN_PATH}/{PATH2DB}')
+db = dbWorker(PATH2DB)
 
 def main():
     detectorStaticImages = handDetector(mode=True, detectionCon=0.3, minTrackCon=0.6, maxHands=2)
@@ -14,10 +12,10 @@ def main():
     drawHand = drawHandWorker()
 
     folderPath = 'gestures/static/custom/'
-    GestureNameFiles = os.listdir(f'{MAIN_PATH}/{folderPath}')
+    GestureNameFiles = os.listdir(folderPath)
     undetectedGestures = set()
     for file in GestureNameFiles:
-        imgGesture = cv2.imread(f'{MAIN_PATH}/{folderPath}/{file}')
+        imgGesture = cv2.imread(f'{folderPath}/{file}')
         gestureName = file[:file.rfind('.')]
         hands = detectorStaticImages.findHands(imgGesture, flipType=False)
         onlyMainHands = handWorker.getOnlyMainHands(hands)

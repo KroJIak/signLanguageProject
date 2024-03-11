@@ -118,3 +118,14 @@ def get4DImageWithText(shape, text, pos, scale, color, thickness, alpha=255):
     mask = np.all(resultImg[:, :, :3] == color, axis=-1)
     resultImg[mask, 3] = alpha
     return resultImg
+
+#serverSide
+'''
+fps = round(1000 / userData['responseTime'] if userData['responseTime'] else 0, 2)
+cv2.putText(mainImg, str(fps), (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.8, (255, 255, 255), 2)
+imgShape = mainImg.shape[:2]
+cutImgShape = (userData['windowSize']['height'], userData['windowSize']['width'])
+startHeightPos, endHeightPos = max(0, round(imgShape[0] / 2 - cutImgShape[0] / 2)), min(imgShape[0], round(imgShape[0] / 2 + cutImgShape[0] / 2))
+startWidthPos, endWidthPos = max(0, round(imgShape[1] / 2 - cutImgShape[1] / 2)), min(imgShape[1], round(imgShape[1] / 2 + cutImgShape[1] / 2))
+cutImg = mainImg[startHeightPos:endHeightPos, startWidthPos:endWidthPos, :]
+'''

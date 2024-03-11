@@ -1,11 +1,10 @@
 from math import sqrt, acos, pi
-import cv2
 import mediapipe as mp
-import numpy as np
 import multiprocessing
 from copy import copy
-import time
-from ModuleImageWorking import *
+import numpy as np
+import cv2
+
 
 PARENT_POINTS = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 0, 13, 14, 15, 0, 17, 18, 19]
 FLIP_HAND_DICT = {
@@ -117,6 +116,20 @@ class globalHandWorker():
         resultHands = {hand['type']: {'lmList': hand['lmList'],
                                    'score': hand['score']} for hand in realHands}
         return resultHands
+
+    def getOnlyMainHands(self, hands):
+        if hands is None: return None
+        newHands = {}
+        for hand in hands:
+            newHands[hand['type']] = {
+                'lmList': hand['lmList'],
+                'score': hand['score']
+            }
+        return newHands
+
+    def onlyMainHands2LmList(self, hands):
+        lmList = [hands[typeHand]['lmList'] for typeHand in hands]
+        return lmList
 
     def getAngleBetweenLines(self, line1, line2):
         startPosLine1, endPosLine1 = line1

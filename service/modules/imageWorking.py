@@ -1,18 +1,22 @@
-import numpy as np
-import cv2
-from PIL import Image
 from io import BytesIO
+from PIL import Image
+import numpy as np
+import base64
+import cv2
 
+def imageToBase64(image):
+    _, buffer = cv2.imencode('.png', image)
+    encodedString = base64.b64encode(buffer)
+    return encodedString.decode()
 
-def encodeImage(img):
-    success, img = cv2.imencode('.jpg', img)
-    imgString = img.tobytes()
-    return imgString
+def base64ToImage(base64String):
+    decodedData = base64.b64decode(base64String)
+    npData = np.frombuffer(decodedData, np.uint8)
+    image = cv2.imdecode(npData, cv2.IMREAD_COLOR)
+    return image
 
-def decodeImage(imgString):
-    imgArray = np.frombuffer(imgString, np.uint8)
-    img = cv2.imdecode(imgArray, cv2.IMREAD_COLOR)
-    return img
+def ppp():
+    print('TEST')
 
 def alphaMergeImage3D(background, foreground, color):
     if foreground is None: return background
@@ -55,9 +59,3 @@ def getZero4DImage(shape):
     height, width = shape[:2]
     zeroImg = np.zeros((height, width, 4), dtype=np.uint8)
     return zeroImg
-
-def setTextOnImage(img, text):
-    resultImg = img.copy()
-    string, pos, scale, color, thickness = text.values()
-    cv2.putText(resultImg, string, pos, cv2.FONT_HERSHEY_COMPLEX, scale, color, thickness)
-    return resultImg
