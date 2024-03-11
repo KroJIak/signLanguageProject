@@ -78,7 +78,7 @@ class handDetector():
         return allHands
 
     def getGestureNameByImg(self, img):
-        return ('static', 'А')
+        return ('assets', 'А')
 
 class drawHandWorker():
     def drawLine(self, img, posPoints, prePoint, curPoint, color, thickness):

@@ -2,12 +2,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const video = document.getElementById('webcam');
     const overlayImage = document.getElementById('overlayImage');
     const errorOverlay = document.getElementById('error-overlay');
-    let averageResponseTime = 0;
-    let resultResponseTime = 0;
-    const numberOfRequests = 10;
-    const commonResponseTime = 1000 / 25;
-    const alignmentCoefficient = 0.8;
-    const urlAPI = 'http://localhost:8080/img/get-result';
+    const responseTime = 1000 / 20;
+    const urlAPI = 'http://localhost:2468/service/detection/dictionary/0/gesture/А';
 
     function updateVideoSize() {
         const windowWidth = window.innerWidth;
@@ -28,31 +24,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
             updateVideoSize();
-
             video.onloadedmetadata = async () => {
-                // Измеряем время для 10 запросов
-                for (let i = 0; i < numberOfRequests; i++) {
-                    const startTime = performance.now();
-                    await sendImageToServer();
-                    const endTime = performance.now();
-                    const responseTime = endTime - startTime;
-                    console.log(`Время ответа для запроса ${i + 1}: ${responseTime} мс`);
-                    averageResponseTime += responseTime;
-                }
-
-                // Вычисляем среднее время
-                console.log(`Среднее время ответа: ${averageResponseTime / numberOfRequests} мс`);
-
-                averageResponseTime = (averageResponseTime / numberOfRequests) * alignmentCoefficient;
-
-                console.log(`Среднее время ответа с коэффициентом: ${averageResponseTime} мс`);
-
-                resultResponseTime = Math.max(averageResponseTime, commonResponseTime);
-
-                // Запускаем регулярные запросы с частотой 1/30 секунды
                 setInterval(async () => {
                     await sendImageToServer();
-                }, resultResponseTime);
+                }, responseTime);
             };
         } catch (error) {
             console.error('Ошибка при получении доступа к вебкамере:', error);
@@ -80,30 +55,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const imageBase64 = canvas.toDataURL('image/jpeg');
-
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+        const base64String = canvas.toDataURL('image/jpeg');
 
         try {
             const response = await fetch(urlAPI, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json', },
                 body: JSON.stringify({
-                    imageBase64: imageBase64,
-                    responseTime: resultResponseTime,
-                    windowSize: {
-                        width: windowWidth,
-                        height: windowHeight,
-                    },
+                    base64String: base64String
                 }),
             });
-
             const data = await response.json();
             // Установим полученное изображение с альфа-каналом как фоновое изображение
-            overlayImage.src = 'data:image/png;base64,' + data.overlayImageBase64;
+            overlayImage.src = 'data:image/png;base64,' + data.base64String;
             hideErrorOverlay(); // Скрыть плашку ошибки
         } catch (error) {
             console.error('Ошибка при отправке изображения:', error);

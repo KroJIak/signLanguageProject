@@ -1,9 +1,9 @@
 from PC.modules.handWorking import handDetector, globalHandWorker, drawHandWorker
-from db.modules.database import dbWorker
+from db.database import dbWorker
 import os
 import cv2
 
-PATH2DB = 'gestures/database.json'
+PATH2DB = 'gestures/dactyl.json'
 db = dbWorker(PATH2DB)
 
 def main():
@@ -11,7 +11,7 @@ def main():
     handWorker = globalHandWorker()
     drawHand = drawHandWorker()
 
-    folderPath = 'gestures/static/custom/'
+    folderPath = 'gestures/assets/custom/'
     GestureNameFiles = os.listdir(folderPath)
     undetectedGestures = set()
     for file in GestureNameFiles:

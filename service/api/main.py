@@ -5,16 +5,21 @@ serviceApp = FastAPI()
 
 class ImageRequest(BaseModel):
     base64String: bytes
-    width: int
-    height: int
 
-class Response(BaseModel):
-    points: dict
+class ImageResponse(BaseModel):
+    base64String: bytes
+
+class ShapesResponse(BaseModel):
+    points: list
+    lines: list
+    circles: list
 
 @serviceApp.post('/detection/dictionary/{dictId}/gesture/{gestName}')
 async def detectionGestureOnImage(image: ImageRequest, dictId: int, gestName: str):
-    print(dictId, gestName)
-    return PointsResponse(points={})
+    points = []
+    lines = []
+    circles = []
+    return ShapesResponse(points=points, lines=lines, circles=circles)
 
 
 @serviceApp.options('/detection/dictionary/{dictId}/gesture/{gestName}')

@@ -1,7 +1,7 @@
 from PC.modules.handWorking import globalHandWorker, drawHandWorker
 from PC.modules.faceWorking import globalFaceWorker, drawFaceWorker
 from PC.modules.imageWorking import *
-from db.modules.database import dbWorker
+from db.database import dbWorker
 from traceback import format_exc
 from threading import Thread
 import numpy as np
@@ -9,7 +9,7 @@ import requests
 import json
 import cv2
 
-PATH2DB = 'gestures/database.json'
+PATH2DB = 'gestures/dactyl.json'
 db = dbWorker(PATH2DB)
 handWorker = globalHandWorker()
 faceWorker = globalFaceWorker()

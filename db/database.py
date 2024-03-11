@@ -25,39 +25,39 @@ class dbWorker:
 
 	def getStaticGesturesNames(self):
 		dbData = self.get()
-		staticGestures = [gesture for gesture in dbData['static']['gestures'].keys()]
+		staticGestures = [gesture for gesture in dbData['assets']['gestures'].keys()]
 		return staticGestures
 
 	def addStaticGesture(self, name, hands, useFace=False, linkedPointsWithFace=None):
 		dbData = self.get()
-		dbData['static']['gestures'][name] = dict(hands=hands,
+		dbData['assets']['gestures'][name] = dict(hands=hands,
 									   useFace=useFace,
 									   linkedPointsWithFace=linkedPointsWithFace)
 		self.save(dbData)
 
 	def getStaticGesture(self, name):
 		dbData = self.get()
-		hands = dbData['static']['gestures'][name]
+		hands = dbData['assets']['gestures'][name]
 		return hands
 
 	def addNameStaticGestureToTwoHandsList(self, gestureName):
 		dbData = self.get()
-		dbData['static']['info']['twoHands'].append(gestureName)
+		dbData['assets']['info']['twoHands'].append(gestureName)
 		self.save(dbData)
 
 	def addNameStaticGestureToOneHandsList(self, gestureName):
 		dbData = self.get()
-		dbData['static']['info']['oneHand'].append(gestureName)
+		dbData['assets']['info']['oneHand'].append(gestureName)
 		self.save(dbData)
 
 	def getStaticInfo(self):
 		dbData = self.get()
-		staticInfo = dbData['static']['info']
+		staticInfo = dbData['assets']['info']
 		return staticInfo
 
 	def getDefaultdbData(self):
 		return {
-				"static": {
+				"assets": {
 					"info": {
 						"twoHands": [],
 						"oneHand": []

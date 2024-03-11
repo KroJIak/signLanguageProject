@@ -15,9 +15,6 @@ def base64ToImage(base64String):
     image = cv2.imdecode(npData, cv2.IMREAD_COLOR)
     return image
 
-def ppp():
-    print('TEST')
-
 def alphaMergeImage3D(background, foreground, color):
     if foreground is None: return background
     resultImg = background.copy()
