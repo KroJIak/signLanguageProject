@@ -4,9 +4,9 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 webPath = os.path.join(os.path.dirname(__file__), '..')
-sitePath = os.path.join(webPath, 'resource', 'v2')
+sitePath = os.path.join(webPath, 'resource', 'v3')
 webApp = FastAPI()
-webApp.mount('/assets', StaticFiles(directory=sitePath), name='assets')
+webApp.mount('/static', StaticFiles(directory=sitePath), name='static')
 
 @webApp.get("/")
 async def mainPage():

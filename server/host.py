@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
+
 from service.api.main import serviceApp
 from db.api.main import dbApp
 from web.api.main import webApp

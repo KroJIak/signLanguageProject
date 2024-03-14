@@ -5,7 +5,7 @@ import base64
 import cv2
 
 def imageToBase64(image):
-    _, buffer = cv2.imencode('.png', image)
+    _, buffer = cv2.imencode('.jpg', image)
     encodedString = base64.b64encode(buffer)
     return encodedString.decode()
 

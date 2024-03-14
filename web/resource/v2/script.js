@@ -1,30 +1,25 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const video = document.getElementById('webcam');
-    const overlayImage = document.getElementById('overlayImage');
+    const overlayImage = document.getElementById('overlay-image');
     const errorOverlay = document.getElementById('error-overlay');
-    const responseTime = 1000 / 20;
-    const urlAPI = 'http://localhost:2468/service/detection/dictionary/0/gesture/А';
+    const urlAPI = 'http://localhost:2468/service/detection/dictionary/0/gesture/В';
+    const responseTime = 1000 / 25;
+    let lastStartTime = 0;
 
-    function updateVideoSize() {
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-
-        video.style.width = windowWidth + 'px';
-        video.style.height = windowHeight + 'px';
-        overlayImage.style.width = windowWidth + 'px';
-        overlayImage.style.height = windowHeight + 'px';
-        errorOverlay.style.width = windowWidth + 'px';
-        errorOverlay.style.height = windowHeight + 'px';
+    // Добавлено обновление размера canvas
+    function updateCanvasSize() {
+        overlayImage.width = video.videoWidth;
+        overlayImage.height = video.videoHeight;
     }
 
-    window.addEventListener('resize', updateVideoSize);
+    window.addEventListener('resize', updateCanvasSize);
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
-            updateVideoSize();
             video.onloadedmetadata = async () => {
+                updateCanvasSize();
                 setInterval(async () => {
                     await sendImageToServer();
                 }, responseTime);
@@ -66,22 +61,52 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }),
             });
             const data = await response.json();
-            // Установим полученное изображение с альфа-каналом как фоновое изображение
-            overlayImage.src = 'data:image/png;base64,' + data.base64String;
-            hideErrorOverlay(); // Скрыть плашку ошибки
+            if (lastStartTime < data.startTime) {
+                drawPoints(data.points);
+                drawLines(data.lines);
+            }
+            lastStartTime = data.startTime;
+            hideErrorOverlay();
         } catch (error) {
             console.error('Ошибка при отправке изображения:', error);
-            showErrorOverlay(); // Показать плашку ошибки
+            showErrorOverlay();
         }
     }
 
+    function drawPoints(points) {
+        const context = overlayImage.getContext('2d');
+        context.clearRect(0, 0, overlayImage.width, overlayImage.height); // Очистка предыдущего кадра
+
+        points.forEach(point => {
+            const { pos, color, radius } = point;
+            context.beginPath();
+            context.arc(pos.x, pos.y, radius, 0, Math.PI * 2); // Рисуем круговую точку
+            context.fillStyle = `rgba(${color.join(',')})`; // Устанавливаем цвет точки
+            context.fill(); // Закрашиваем точку
+        });
+    }
+
+    function drawLines(lines) {
+        const context = overlayImage.getContext('2d');
+
+        lines.forEach(line => {
+            const { start, end, color, thickness } = line;
+            context.beginPath();
+            context.moveTo(start.x, start.y); // Устанавливаем начальную точку линии
+            context.lineTo(end.x, end.y); // Устанавливаем конечную точку линии
+            context.strokeStyle = `rgba(${color.join(',')})`; // Устанавливаем цвет линии
+            context.lineWidth = thickness; // Устанавливаем толщину линии
+            context.stroke(); // Рисуем линию
+        });
+    }
+
     function showErrorOverlay() {
-        errorOverlay.style.opacity = 1; // Плавное появление
-        errorOverlay.style.pointerEvents = 'auto'; // Включение перехвата событий
+        errorOverlay.style.opacity = 1;
+        errorOverlay.style.pointerEvents = 'auto';
     }
 
     function hideErrorOverlay() {
-        errorOverlay.style.opacity = 0; // Плавное затухание
-        errorOverlay.style.pointerEvents = 'none'; // Выключение перехвата событий
+        errorOverlay.style.opacity = 0;
+        errorOverlay.style.pointerEvents = 'none';
     }
 });

@@ -1,9 +1,9 @@
 from PC.modules.handWorking import handDetector, globalHandWorker, drawHandWorker
-from db.database import dbWorker
+from db.modules.database import dbWorker
 import os
 import cv2
 
-PATH2DB = 'gestures/dactyl.json'
+PATH2DB = 'gestures/Дактиль.json'
 db = dbWorker(PATH2DB)
 
 def main():

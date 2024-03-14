@@ -1,15 +1,16 @@
 from PC.modules.handWorking import globalHandWorker, drawHandWorker
 from PC.modules.faceWorking import globalFaceWorker, drawFaceWorker
+from db.modules.database import dbWorker
 from PC.modules.imageWorking import *
-from db.database import dbWorker
 from traceback import format_exc
 from threading import Thread
+from time import sleep
 import numpy as np
 import requests
 import json
 import cv2
 
-PATH2DB = 'gestures/dactyl.json'
+PATH2DB = 'gestures/Дактиль.json'
 db = dbWorker(PATH2DB)
 handWorker = globalHandWorker()
 faceWorker = globalFaceWorker()
@@ -19,52 +20,44 @@ drawFace = drawFaceWorker()
 class outputImageWorker():
     def __init__(self):
         self.layers = {}
+        self.texts = {}
         self.resultHands = {}
         self.resultFace = {}
-        self.countEmptyLayersHands = 0
-        self.countEmptyLayersFace = 0
-        self.filterPowerHands = 1
-        self.filterPowerFace = 1
-        self.colorLinesHand = drawHand.getDefaultColorLines()
-        self.colorPointsFace = (0, 150, 0)
 
-    def setLayer(self, name, img):
-        self.layers[name] = img
+    def setLayer(self, name, img, color):
+        self.layers[name] = {'image': img, 'color': color}
+
+    def setText(self, name, data):
+        self.texts[name] = data
 
     def setColorLinesHand(self, colorLinesHand):
         self.colorLinesHand = colorLinesHand
 
+    def setColorPointsFace(self, colorPointsFace):
+        self.colorPointsFace = colorPointsFace
+
     def setLinesFromHands(self, resultHands):
         if resultHands is None: return
-        self.filterPowerHands = handWorker.getFilterPower()
         self.resultHands = resultHands
-        countHandsArr = [len(hands) for hands in handWorker.getHandsOldArray()]
-        self.countEmptyLayersHands = countHandsArr.count(0)
 
     def setLinesFromFace(self, resultFace):
         if resultFace is None: return
-        self.filterPowerFace = faceWorker.getFilterPower()
         self.resultFace = resultFace
-        countFaceArr = [len(hands) for hands in faceWorker.getFacesOldArray()]
-        self.countEmptyLayersFace = countFaceArr.count(0)
 
     def getResultImg(self, background, linesHandThickness=3, pointsFaceThickness=2, pointFaceRadius=1):
-        resultImg = background.copy()
-        for key in self.layers:
-            layer = self.layers[key]
-            resultImg = alphaMergeImage3D(layer, resultImg)
-        if self.resultFace:
-            coefExtinctionFace = 1 - (self.countEmptyLayersHands / self.filterPowerHands)
-            colorWithExtinction = list(np.dot(self.colorPointsFace, coefExtinctionFace))
-            resultImg = drawFace.drawPointsOnImg(resultImg, self.resultFace['lmList'], pointFaceRadius, colorWithExtinction,
-                                                  pointsFaceThickness)
+        resultImg = addAlphaInImage(background)
+        if self.resultFace and self.colorPointsFace:
+            zeroImg = getZero4DImage(resultImg.shape)
+            faceImg = drawFace.drawPointsOnImg(zeroImg, self.resultFace['lmList'], pointFaceRadius, self.colorPointsFace, pointsFaceThickness)
+            resultImg = alphaMergeImage4D(resultImg, faceImg)
         if self.resultHands:
-            coefExtinctionHand = 1 - (self.countEmptyLayersHands / self.filterPowerHands)
             for typeHand in self.resultHands:
-                for i, color in enumerate(self.colorLinesHand[typeHand]):
-                    self.colorLinesHand[typeHand][i] = list(np.dot(color, coefExtinctionHand))
-                if typeHand in self.resultHands and typeHand in self.colorLinesHand:
-                    resultImg = drawHand.drawLinesOnImgFromPoints(resultImg, self.resultHands[typeHand]['lmList'], self.colorLinesHand[typeHand], linesHandThickness)
+                if not (typeHand in self.resultHands and typeHand in self.colorLinesHand): continue
+                resultImg = drawHand.drawLinesOnImgFromPoints(resultImg, self.resultHands[typeHand]['lmList'], self.colorLinesHand[typeHand], linesHandThickness)
+        for key, layer in self.layers.items():
+            resultImg = alphaMergeImage3D(resultImg, layer['image'], layer['color'])
+        for key, text in self.texts.items():
+            resultImg = setTextOnImage(resultImg, text)
         return resultImg
 
 class connectGetTrackingObjects():
@@ -115,22 +108,25 @@ def showCamera():
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
-    cap.set(cv2.CAP_PROP_FPS, 30)
+    cap.set(cv2.CAP_PROP_FPS, 60)
+    cap.set(28, 0)
     try:
         while run:
             success, mainFlipImg = cap.read()
             mainImg = cv2.flip(mainFlipImg, 2)
             if success:
                 resultImg = outputWorker.getResultImg(mainImg)
+                coef = 1
+                resultImg = cv2.resize(resultImg, (int(resultImg.shape[1] * coef), int(resultImg.shape[0] * coef)))
                 cv2.imshow('Camera', resultImg)
             match cv2.waitKey(1):
                 case 27: run = False
-                # case 83:
-                #     indexGesture = (indexGesture + 1) % len(allGestureNames)
-                #     sleep(0.1)
-                # case 81:
-                #     indexGesture = (indexGesture - 1) if (indexGesture - 1) >= 0 else len(allGestureNames)-1
-                #     sleep(0.1)
+                case 83:
+                    indexGesture = (indexGesture + 1) % len(allGestureNames)
+                    sleep(0.1)
+                case 81:
+                    indexGesture = (indexGesture - 1) if (indexGesture - 1) >= 0 else len(allGestureNames)-1
+                    sleep(0.1)
     except Exception:
         print(format_exc())
         cv2.destroyAllWindows()
@@ -141,35 +137,30 @@ def showCamera():
 def computingFunction():
     global mainImg, run, indexGesture, allGestureNames
     mainImg = None
-    oldGestureData = {}
-    # allGestureNames = db.getStaticGesturesNames()
-    # indexGesture = 0
+    allGestureNames = db.getStaticGesturesNames()
+    indexGesture = 0
     while run:
         if mainImg is None: continue
-        # gestureName = allGestureNames[indexGesture]
-        # fullGesture = db.getStaticGesture(gestureName)
+        gestureName = allGestureNames[indexGesture]
+        fullGesture = db.getStaticGesture(gestureName)
         compressedImg = compressImage(mainImg, 70)
 
-        hands = con.getPositionHands(compressedImg)
-        onlyMainHands = handWorker.getOnlyMainHands(hands)
-        resultHands = handWorker.getResultHands(onlyMainHands, filterPower=2, confidence=0.78)
+        realHands = con.getPositionHands(compressedImg)
+        resultHands = handWorker.getResultHands(realHands)
         resultFace = {}
-        gestureName = None
-
         if resultHands:
-            faces = con.getPositionFaces(compressedImg)
-            onlyOneFace = faceWorker.getOnlyOneFace(faces)
-            resultFace = faceWorker.getResultFace(onlyOneFace, filterPower=2)
+            realFaces = con.getPositionFaces(compressedImg)
+            resultFace = faceWorker.getResultFace(realFaces)
+            needFacePointsByHand = faceWorker.getNeedPointsByHand(fullGesture)
 
-            gestureType, gestureName, handPercent, lineHandsPercent = handWorker.getMaxPossibleGesture(resultHands, resultFace, db.get(), oldGestureData)
-            # lineHandsPercent = handWorker.getLineHandsPercent(resultHands, fullGesture, resultFace)
+            lineHandsPercent = handWorker.getLineHandsPercent(resultHands, fullGesture, resultFace)
             colorLinesHand = drawHand.getColorLinesHand(resultHands, lineHandsPercent)
+            colorPointsFace = drawFace.getColorPointsFace(needFacePointsByHand, resultFace, [170, 80, 70, 255], 70)
             outputWorker.setColorLinesHand(colorLinesHand)
-            oldGestureData = dict(type=gestureType, name=gestureName, percent=handPercent)
+            outputWorker.setColorPointsFace(colorPointsFace)
 
-        zeroImg = getZero3DImage(mainImg.shape[:2])
-        nameGestuneOnScreen = drawTextOnImage(zeroImg, gestureName, (70, 650), 2, (255, 255, 255), 3)
-        outputWorker.setLayer('nameGesture', nameGestuneOnScreen)
+        textData = dict(string=gestureName, pos=(70, 650), scale=2, color=(0, 40, 240), thickness=3)
+        outputWorker.setText('nameGesture', textData)
         outputWorker.setLinesFromHands(resultHands)
         outputWorker.setLinesFromFace(resultFace)
 

@@ -129,3 +129,44 @@ startHeightPos, endHeightPos = max(0, round(imgShape[0] / 2 - cutImgShape[0] / 2
 startWidthPos, endWidthPos = max(0, round(imgShape[1] / 2 - cutImgShape[1] / 2)), min(imgShape[1], round(imgShape[1] / 2 + cutImgShape[1] / 2))
 cutImg = mainImg[startHeightPos:endHeightPos, startWidthPos:endWidthPos, :]
 '''
+
+#handWorking
+
+def findWorldHands(self, img, flipType=True):
+    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    processFinding = multiprocessing.Process(self.getResults(imgRGB))
+    while processFinding.is_alive(): pass
+    self.height, self.width = img.shape[:2]
+    allHands = []
+    if self.results.multi_hand_world_landmarks:
+        for handType, handLms in zip(self.results.multi_handedness, self.results.multi_hand_world_landmarks):
+            lmList = []
+            for lm in handLms.landmark:
+                multip = 2000
+                px, py, pz = self.width // 2 + lm.x * multip, self.height // 2 + lm.y * multip, self.width // 2 + lm.z * multip
+                lmList.append(dict(x=px, y=py, z=pz))
+
+            typeHand = handType.classification[0].label
+            scoreHand = handType.classification[0].score
+            if flipType: typeHand = flipHand(typeHand)
+            allHands.append({
+                'lmList': lmList,
+                'type': typeHand,
+                'score': scoreHand
+            })
+    return allHands
+
+#handWorkng - drawHandWorker
+    def drawLine(self, img, posPoints, prePoint, curPoint, color, thickness):
+        resultImg = copy(img)
+        pos1 = dict(x=int(posPoints[prePoint]['x']), y=int(posPoints[prePoint]['y']))
+        pos2 = dict(x=int(posPoints[curPoint]['x']), y=int(posPoints[curPoint]['y']))
+        cv2.line(resultImg, (pos1['x'], pos1['y']), (pos2['x'], pos2['y']), color, thickness)
+        return resultImg
+
+    def drawLinesOnImgFromPoints(self, img, lmList, colorLines, thickness):
+        resultImg = copy(img)
+        for point in range(1, 21):
+            resultImg = self.drawLine(resultImg, lmList, PARENT_POINTS[point], point, colorLines[point], thickness)
+        return resultImg

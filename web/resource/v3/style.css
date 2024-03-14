@@ -1,0 +1,112 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+video, canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+video {
+    transform: scaleX(-1);
+}
+
+#error-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(70, 70, 70, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: white;
+    opacity: 0; /* начальная непрозрачность */
+    pointer-events: none; /* для того чтобы не перехватывала события клика */
+    transition: opacity 0.5s ease-in-out; /* анимация затухания/появления */
+}
+
+/* Обновляем стили кнопки */
+#camera-switch button {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 999;
+    width: 50px; /* Задаем фиксированную ширину */
+    height: 50px; /* Задаем фиксированную высоту */
+    padding: 10px; /* Добавляем немного отступов */
+}
+
+#camera-switch button img {
+    width: 100%; /* Растягиваем изображение на всю кнопку */
+}
+
+#camera-switch select {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.5); /* Прозрачный черный цвет фона */
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 16px;
+    color: white; /* Цвет текста */
+    z-index: 999;
+    width: 200px;
+}
+
+#black-overlay {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.5); /* Прозрачный черный цвет фона */
+    border: 1px solid #ccc;
+    padding: 30px;
+    border-radius: 5px;
+    width: 10px;
+}
+
+#dictionary-select {
+    position: fixed;
+    top: 20px; /* Изменено с bottom на top */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.5); /* Прозрачный черный цвет фона */
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 16px;
+    color: white; /* Цвет текста */
+    z-index: 999;
+    width: 200px;
+}
+
+#gesture-select {
+    position: fixed;
+    top: 70px; /* Изменено с bottom на top */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.5); /* Прозрачный черный цвет фона */
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 16px;
+    color: white; /* Цвет текста */
+    z-index: 999;
+    width: 200px;
+    display: none; /* По умолчанию скрываем список */
+}

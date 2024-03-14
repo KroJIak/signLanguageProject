@@ -1,9 +1,9 @@
 from PC.modules.handWorking import globalHandWorker, drawHandWorker, handDetector
 from PC.modules.faceWorking import globalFaceWorker, drawFaceWorker, faceDetector
-from db.database import dbWorker
+from db.modules.database import dbWorker
 from PC.modules.imageWorking import *
 
-PATH2DB = 'gestures/dactyl.json'
+PATH2DB = 'gestures/Дактиль.json'
 db = dbWorker(PATH2DB)
 
 detHands = handDetector(detectionCon=0.6, minTrackCon=0.6, maxHands=2)
