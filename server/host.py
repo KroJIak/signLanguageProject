@@ -5,6 +5,15 @@ from service.api.main import serviceApp
 from db.api.main import dbApp
 from web.api.main import webApp
 
+"""s.kdfmvlzdkfjbv;skmf vnwsvkjednf,.b .erbh
+setg('haehtr;khgn;osiebnetgh'
+     'strh;bjesrkjgthesighieirjg'
+     'ethelrkbjprotjb;pkn'
+     ''
+     'thbr'
+     ''classmethodetrh
+)"""
+
 app = FastAPI()
 app.mount('/service/', serviceApp)
 app.mount('/db/', dbApp)
