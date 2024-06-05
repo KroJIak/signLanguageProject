@@ -1,11 +1,13 @@
+
+from db.modules.database.worker import dbDictWorker, dbGesturesWorker
+from db.modules.const import ConstPlenty
+
 from fastapi import FastAPI
 from pydantic import BaseModel
-from db.modules.database import dbDictionariesWorker, dbGesturesWorker, getDictionaryFileName
-from service.utils.const import ConstPlenty
 
 dbApp = FastAPI()
 const = ConstPlenty()
-dbDictionaries = dbDictionariesWorker(const.mainPath + const.path.gestures, 'database.json')
+dbDictionaries = dbDictWorker()
 
 class DictionariesResponse(BaseModel):
     dictionaries: dict
@@ -20,7 +22,8 @@ async def getDictionaries():
 
 @dbApp.get('/gestures/get-gesture-names/dictionary/{dictId}')
 async def getGestureNames(dictId: int):
-    dictionaryFileName = getDictionaryFileName(const.mainPath + const.path.gestures, dictId)
-    dbGestures = dbGesturesWorker(const.mainPath + const.path.dictionaries, dictionaryFileName)
+    dictionaryName = dbDictionaries.getDictionaryName(dictId)
+    dictionaryPath = dbDictionaries.getDictionaryPath(dictionaryName)
+    dbGestures = dbGesturesWorker(dictionaryPath)
     gestureNames = dbGestures.getGestureNames()
     return GestureNamesResponse(gestureNames=gestureNames)
