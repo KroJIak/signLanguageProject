@@ -4,6 +4,9 @@ import os
 from utils.database.const import ConstPlenty
 from utils.funcs import joinPath
 
+from utils.objects import Vector, LinkedPoint
+from utils.hands.objects import BoneVector, Hand, Gesture
+
 const = ConstPlenty()
 
 class dbGlobalWorker():
@@ -33,3 +36,34 @@ class dbDictGlobalWorker(dbGlobalWorker):
     def getDictionaryPath(self, name):
         dictionaryPath = joinPath(const.path.dictionaries, f'{name}.json')
         return dictionaryPath
+
+class dbGestureGlobalWorker(dbGlobalWorker):
+    def __init__(self, databasePath):
+        super().__init__(databasePath)
+
+    def getGestures(self):
+        dbData = self.get()
+        return dbData
+
+    def getGesture(self, name):
+        dbData = self.get()
+        dictGesture = dbData[name]
+        hands = []
+        for typeHand, dictHand in dictGesture.items():
+            bones = []
+            for dictBone in dictHand['bones']:
+                dictVector = dictBone['vector']
+                boneVector = BoneVector(*list(dictVector.values()), dictBone['id'], dictBone['parentId'])
+                bones.append(boneVector)
+            dictNormalVector = dictHand['normalVector']
+            normalVector = Vector(*list(dictNormalVector.values()))
+            linkedPoints = []
+            for dictLinkedPoint in dictHand['linkedPoints']:
+                linkedPoint = LinkedPoint(dictLinkedPoint['handPointId'], dictLinkedPoint['facePointId'],
+                                          dictLinkedPoint['dist'])
+                linkedPoints.append(linkedPoint)
+            resultHand = Hand(typeHand, bones=bones, normalVector=normalVector, useFace=dictHand['useFace'],
+                              linkedPoints=linkedPoints)
+            hands.append(resultHand)
+        resultGesture = Gesture(name, hands)
+        return resultGesture

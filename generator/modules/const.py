@@ -1,5 +1,6 @@
 
 from utils.const import GlobalConstPlenty
+from utils.funcs import joinPath
 
 class Files():
     def __init__(self):
@@ -9,6 +10,7 @@ class ConstPlenty(GlobalConstPlenty):
     def __init__(self):
         super().__init__()
         self.files = Files()
+        self.path.images = joinPath(self.path.generator, 'images')
 
 class Messages:
     def __init__(self):

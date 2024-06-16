@@ -1,5 +1,5 @@
 
-from utils.database.worker import dbDictGlobalWorker, dbGlobalWorker
+from utils.database.worker import dbDictGlobalWorker, dbGestureGlobalWorker
 
 class dbDictWorker(dbDictGlobalWorker):
     def getNextDictId(self):
@@ -23,7 +23,10 @@ class dbDictWorker(dbDictGlobalWorker):
             del dbData[keyByName]
         self.addNewDictionary(name)
 
-class dbGestureWorker(dbGlobalWorker):
+class dbGestureWorker(dbGestureGlobalWorker):
+    def __init__(self, databasePath):
+        super().__init__(databasePath)
+
     def addNewGesture(self, gesture):
         dbData = self.get()
         if gesture.name in dbData: return
@@ -32,10 +35,12 @@ class dbGestureWorker(dbGlobalWorker):
             bones = [{'id': bone.id, 'parentId': bone.parentId,
                       'vector': {'x': bone.x, 'y': bone.y, 'z': bone.z}}
                       for bone in hand.bones]
+            normalVector = hand.normalVector
             linkedPoints = [{'handPointId': point.handPointId, 'facePointId': point.facePointId,
                              'dist': point.dist} for point in hand.linkedPoints]
             dbData[gesture.name][hand.typeHand] = {
                 'bones': bones,
+                'normalVector': {'x': normalVector.x, 'y': normalVector.y, 'z': normalVector.z},
                 'useFace': hand.useFace,
                 'linkedPoints': linkedPoints
             }

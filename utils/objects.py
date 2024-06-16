@@ -1,9 +1,21 @@
 
+import numpy as np
+
 class Position:
     def __init__(self, x: float, y: float, z: float):
         self.x = x
         self.y = y
         self.z = z
+
+    def add(self, anotherPos):
+        self.x += anotherPos.x
+        self.y += anotherPos.y
+        self.z += anotherPos.z
+
+    def prod(self, coef: float):
+        self.x *= coef
+        self.y *= coef
+        self.z *= coef
 
     def __str__(self):
         return f'[Position] x: {self.x} y: {self.y} z: {self.z}'
@@ -13,6 +25,22 @@ class Vector:
         self.x = x
         self.y = y
         self.z = z
+
+    def add(self, anotherVector):
+        self.x += anotherVector.x
+        self.y += anotherVector.y
+        self.z += anotherVector.z
+
+    def prod(self, coef: float):
+        self.x *= coef
+        self.y *= coef
+        self.z *= coef
+
+    def setArray(self, array):
+        self.x, self.y, self.z = array
+
+    def getArray(self):
+        return np.array([self.x, self.y, self.z])
 
     def __str__(self):
         return f'[Vector] x: {self.x} y: {self.y} z: {self.z}'

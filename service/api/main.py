@@ -2,7 +2,7 @@ import time
 
 from service.modules.image import base64ToImage
 from service.modules.front.main import getResultShapes
-from service.modules.const import WebLine, WebPoint
+from service.modules.objects import WebLine, WebPoint
 
 from fastapi import FastAPI
 from pydantic import BaseModel

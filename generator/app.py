@@ -4,7 +4,7 @@ from generator.modules.const import ConstPlenty, Messages
 from generator.modules.objects import GestureImage, DictionaryInfo
 from generator.modules.database.worker import dbDictWorker, dbGestureWorker
 from utils.hands.detector import HandDetector
-from utils.hands.objects import BoneVector, Gesture
+from utils.hands.objects import Gesture
 from utils.funcs import joinPath
 
 import cv2
@@ -57,7 +57,7 @@ def main():
         dbGesture = dbGestureWorker(dictionaryPath)
         for image in dictionary.images:
             img = cv2.imread(image.path)
-            hands = detHands.findHands(img)
+            hands = detHands.findHands(img, useUnitBones=True)
             gesture = Gesture(image.name, hands)
             match commands[dictionary.name]:
                 case 'a': dbGesture.addNewGesture(gesture)

@@ -1,6 +1,6 @@
 
-from service.modules.const import WebPoint, WebPosition
-from service.modules.funcs import *
+from service.modules.objects import WebPoint, WebPosition
+from utils.funcs import getDistanceBetweenPoints
 
 def getLinkedFacePointIds(masterGesture):
     facePointIds = []

@@ -1,4 +1,3 @@
-
 from utils.const import GlobalConstPlenty
 
 class ConstPlenty(GlobalConstPlenty):

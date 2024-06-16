@@ -1,7 +1,8 @@
 
 import time
 
-from utils.objects import Point
+from utils.funcs import computeNormalVector, getUnitVector
+from utils.objects import Point, Vector
 from utils.hands.objects import Hand, BoneVector
 from utils.hands.const import ConstPlenty
 
@@ -37,21 +38,20 @@ class HandDetector:
             lmList.append(Point(px, py, pz, id, const.hands.lmList.parentPoints[id]))
         return lmList
 
-    def getBoneVectors(self, lmList):
+    def getBoneVectors(self, lmList, useUnitBones):
         bones = []
         for point in lmList:
             if point.parentId == -1: continue
             parentPoint = lmList[point.parentId]
-            dx = point.x - parentPoint.x
-            dy = point.y - parentPoint.y
-            dz = point.z - parentPoint.z
+            dVector = Vector(point.x - parentPoint.x, point.y - parentPoint.y, point.z - parentPoint.z)
+            if useUnitBones: dVector = getUnitVector(dVector)
             id = point.id - 1
             parentId = const.hands.bones.parentPoints[id]
-            boneVector = BoneVector(dx, dy, dz, id, parentId)
+            boneVector = BoneVector(dVector.x, dVector.y, dVector.z, id, parentId)
             bones.append(boneVector)
         return bones
 
-    def findHands(self, img, flipType=False):
+    def findHands(self, img, flipType=False, useUnitBones=False):
         self.height, self.width = img.shape[:2]
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         lastTime = time.time()
@@ -63,8 +63,10 @@ class HandDetector:
         if self.results.multi_hand_landmarks:
             for handType, handLms in zip(self.results.multi_handedness, self.results.multi_hand_landmarks):
                 lmList = self.getLmList(handLms)
-                bones = self.getBoneVectors(lmList)
+                bones = self.getBoneVectors(lmList, useUnitBones)
+                centerPalmPoints = [lmList[id] for id in const.hands.palm.centerPoints]
+                normalVector = computeNormalVector(*centerPalmPoints)
                 typeHand = handType.classification[0].label.lower()
                 if flipType: typeHand = flipHand(typeHand)
-                allHands.append(Hand(typeHand, tuple(lmList), tuple(bones)))
+                allHands.append(Hand(typeHand, lmList, bones, normalVector))
         return allHands
