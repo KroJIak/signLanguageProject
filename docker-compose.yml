@@ -1,10 +1,7 @@
-version: '3.8'
-
 services:
   signlanguage:
     build:
       context: .
-      dockerfile: Dockerfile
     container_name: siglanguage-container
     ports:
       - "2468:2468"
