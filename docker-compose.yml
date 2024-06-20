@@ -2,12 +2,10 @@ services:
   signlanguage:
     build:
       context: .
-    container_name: siglanguage-container
+    container_name: signlanguage-container
     ports:
       - "2468:2468"
     restart: always
-    environment:
-      - PYTHONPATH=/workspace/app
     volumes:
       - ./assets:/workspace/assets
       - ./db:/workspace/db
@@ -16,5 +14,5 @@ services:
       - ./service:/workspace/service
       - ./utils:/workspace/utils
       - ./web:/workspace/web
-    command: ["python", "/workspace/app/server/host.py"]
+    command: ["python3", "/workspace/server/host.py"]
 

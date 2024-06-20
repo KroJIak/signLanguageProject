@@ -20,4 +20,4 @@ app.mount('/db/', dbApp)
 app.mount('/', webApp)
 
 if __name__ == '__main__':
-    uvicorn.run('host:app', host='localhost', port=2468, workers=10)
+    uvicorn.run('host:app', host='0.0.0.0', port=2468, workers=10)

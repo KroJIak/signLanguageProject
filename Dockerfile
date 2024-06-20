@@ -18,4 +18,3 @@ COPY ./utils /workspace/utils
 COPY ./web /workspace/web
 
 ENV PYTHONPATH=/workspace/app:$PYTHONPATH
-CMD ["python", "/workspace/app/server/host.py"]
