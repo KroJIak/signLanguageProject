@@ -1,0 +1,1 @@
+docker container exec -it signlanguage-container "/bin/bash"
