@@ -4,7 +4,7 @@ services:
       context: .
     container_name: signlanguage-container
     ports:
-      - "2468:2468"
+      - "80:80"
     restart: always
     volumes:
       - ./assets:/workspace/assets
